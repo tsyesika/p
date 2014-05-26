@@ -406,9 +406,15 @@ class Settings(JSONStore):
    
     @classmethod
     def get_filename(cls):
-        path = os.path.expanduser("~/.config/p/")
+        XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME", "~/.config")
+        XDG_CONFIG_HOME = os.path.expanduser(XDG_CONFIG_HOME)
+        if not os.path.isdir(XDG_CONFIG_HOME):
+            os.mkdir(XDG_CONFIG_HOME)
+        
+        path = os.path.join(os.path.expanduser(XDG_CONFIG_HOME), "p")
         if not os.path.isdir(path):
             os.mkdir(path)
+
         return os.path.join(path, "settings.json")
 
 if __name__ == "__main__":
