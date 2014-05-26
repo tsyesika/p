@@ -3,6 +3,52 @@ p
 
 This is a [pump.io](http://pump.io) version of the command line utility [t](https://github.com/sferik/t).
 
+Troubleshooting
+===============
+
+This is still a very new program so there are probably many bugs however
+if you get any of the following try the solutions first as they're known
+about:
+
+No active account
+-----------------
+If you get a message looking something similiar to:
+```
+Traceback (most recent call last):
+  File "p", line 571, in <module>
+    command(*sys.argv[2:])
+  File "p", line 501, in whoami
+    return self.whois(self.pump.client.webfinger)
+AttributeError: 'NoneType' object has no attribute 'client'
+```
+
+You need to do:
+```
+$ p authorize WEBFINGER
+$ p set active WEBFINGER
+```
+(replace WEBFINGER with your pump.io webfinger).
+
+Modules missing
+---------------
+If you get something which looks like:
+```
+Traceback (most recent call last):
+  File "./p", line 27, in <module>
+    from pypump import WebPump, Client, JSONStore
+ImportError: No module named pypump
+```
+
+That's because you don't have the modules you need to, please run:
+```
+$ virtualenv . && . bin/activate
+$ pip install -r requirements.txt
+```
+
+(everytime you wish to use p you will have to do `. bin/active` this is until you have
+the dependecies installed on your system).
+
+
 Configure
 =========
 
