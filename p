@@ -4,9 +4,11 @@ import collections
 import sys
 import os
 import re
+import datetime
 
 from HTMLParser import HTMLParser
 
+import pytz
 from pypump import WebPump, Client, JSONStore
 from pypump.models.note import Note
 from termcolor import colored
@@ -108,6 +110,57 @@ class P(object):
             answer = raw_input(question).strip()
 
         return choices[answer]
+
+    def __relative_date(self, d, now=None, reversed=False):
+        """ Returns fuzzy timestamp for date relative to now """
+        # This was taken from django 1.6 which is under the BSD licence
+        # commit: b625e861e5d2709a16588ecb82f46e1fb86004c7
+        # URL: https://github.com/django/django/
+
+        # Subin ungettext_lazy until I can implement proper localisation
+        def ungettext_lazy(singular, plural):
+            return lambda x: singular % x if x == 1 else plural % x
+
+        chunks = (
+            (60 * 60 * 24 * 365, ungettext_lazy("%d year", "%d years")),
+            (60 * 60 * 24 * 30, ungettext_lazy("%d month", "%d months")),
+            (60 * 60 * 24 * 7, ungettext_lazy("%d week", "%d weeks")),
+            (60 * 60 * 24, ungettext_lazy("%d day", "%d days")),
+            (60 * 60, ungettext_lazy("%d hour", "%d hours")),
+            (60, ungettext_lazy("%d minute", "%d minutes"))
+        )
+    
+        # Convert datetime.date to datetime.datetime for comparison.
+        if not isinstance(d, datetime.datetime):
+            d = datetime.datetime(d.year, d.month, d.day)
+        if now and not isinstance(now, datetime.datetime):
+            now = datetime.datetime(now.year, now.month, now.day)
+
+        if not now:
+            now = datetime.datetime.now(pytz.UTC)
+
+        delta = (d - now) if reversed else (now - d)
+        # ignore microseconds
+        since = delta.days * 24 * 60 * 60 + delta.seconds
+        if since <= 0:
+            # d is in the future compared to now, stop processing.
+            return "Just now"
+
+        for i, (seconds, name) in enumerate(chunks):
+            count = since // seconds
+            if count != 0:
+                break
+
+        result = name(count)
+        if i + 1 < len(chunks):
+            # Now get the second item
+            seconds2, name2 = chunks[i + 1]
+            count2 = (since - (seconds * count)) // seconds2
+            if count2 != 0:
+                result += ", " + name2(count2)
+
+        return "{0} ago".format(result)
+
 
     def help(self, subcommand=None):
         if subcommand is None:
@@ -239,8 +292,13 @@ class P(object):
             
             content = item.content
             content = HTMLParser().unescape(html_cleaner.sub("", content)).strip()
+            
+            meta = "{name} - {date}".format(
+                name=colored(item.author.display_name, color="yellow"),
+                date=colored(self.__relative_date(item.published), color="red")
+            )
 
-            self.output.log(item.author.display_name, color="yellow")
+            self.output.log(meta)
             self.output.log(content)
             self.output.log("")
 
