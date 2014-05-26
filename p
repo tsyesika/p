@@ -247,14 +247,51 @@ class P(object):
 
         self.output.log("All done.")
 
-    def post(self, *message):
-        """ Post a new note to pump.io """
-        message = " ".join(message)
-        if not message:
-            self.output.fatal("You need to specify a message.")
+    def post(self, object_type, *message):
+        """ Post item to pump.io feed
 
-        note = self.pump.Note(message)
-        note.send()
+        This will post an object to your pump.io feed. If no
+        data is given it will assume the data will come from
+        stdio.
+
+        Syntax:
+            $ p post note [MESSAGE]
+            $ p post image [PATH]
+
+        TYPE: note image
+
+        Examples:
+            $ p post note "Hai I'm posting this from the command line ^_^"
+            $ p post image /home/jessica/Pictures/awesome.png
+            $ cat something.txt | p post note
+        """
+        if object_type not in ["image", "note"]:
+            self.output.fatal("Unknown object type {0!r}.".format(object_type))
+
+        if object_type == "image":
+            if len(messages) <= 0:
+                self.output.fatal("Need to specify image path.")
+            
+            path = message[0]   
+            if not os.path.isfile(path):
+                self.output.fatal("File at path cannot be found {0!r}.".format(path))
+
+            image = self.pump.Image()
+            image.from_file(path)
+            return
+
+        if object_type == "note":
+            if message:
+                # Message has been given as an argument
+                message = " ".join(message)
+            else:
+                message = sys.stdin.read()
+
+            if not message:
+                self.output.fatal("No message provided.")
+
+            note = self.pump.Note(message)
+            note.send()
 
     def follow(self, webfinger):
         """ Follow a user """

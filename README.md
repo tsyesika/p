@@ -30,14 +30,6 @@ To switch between multiple accounts you can use
 $ p set account <webfinger>
 ```
 
-Removing account
-----------------
-
-To remove an account you can do:
-```
-$ p unauthorize <webfinger>
-```
-
 Usage
 ======
 
@@ -80,6 +72,24 @@ Unfollow
 To unfollow a user
 ```
 $ p unfollow <webfinger>
+```
+
+Post an object
+--------------
+
+You can post notes and images via p, there are several ways this is how:
+```
+$ p post note "Hai this is a message from p ^_^."
+$ p post image /home/jessica/Pictures/awesome.png
+$ cat something.txt | p post note
+```
+
+Read your inbox
+---------------
+
+You can see items in your inbox by doing, this by default will show the last 20 items:
+```
+$ p inbox
 ```
 
 Licence
