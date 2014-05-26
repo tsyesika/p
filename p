@@ -44,13 +44,15 @@ class P(object):
     Commands:
         p authorize WEBFINGER
         p accounts
-        p post NOTE
+        p post note CONTENT
+        p post image PATH
         p follow WEBFINGER
         p unfollow WEBFINGER
         p followers
         p following
         p whoami
         p whois WEBFINGER
+        p inbox
     """
 
     def __init__(self, settings, output):
