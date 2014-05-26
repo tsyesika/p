@@ -50,6 +50,8 @@ class P(object):
         p unfollow WEBFINGER
         p followers
         p following
+        p leaders
+        p groupies
         p whoami
         p whois WEBFINGER
         p inbox
@@ -335,6 +337,25 @@ class P(object):
         """ Display all users following you """
         for person in self.pump.me.following:
             self.output.log(person.webfinger)
+    def groupies(self):
+        """ Display all users who follow you that you don't follow back """
+        followers = [p.webfinger for p in self.pump.me.following]
+        following = [p.webfinger for p in self.pump.me.followers]
+
+        # Find out who is in following that isn't in followers
+        for person in followers:
+            if person not in following:
+                self.output.log(person)
+
+    def leaders(self):
+        """ Display all the users you follow that don't follow you back """ 
+        followers = [p.webfinger for p in self.pump.me.following]
+        following = [p.webfinger for p in self.pump.me.followers]       
+
+        # Find out who is in followers that isn't in following
+        for person in following:
+            if person not in followers:
+                self.output.log(person)
 
     def inbox(self):
         """ Lists latest 20 notes in inbox """
