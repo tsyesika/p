@@ -87,3 +87,15 @@ Licence
 
 p is under the GPLv3 (or at your option later).
 
+Screenshots
+===========
+
+Inbox
+-----
+
+![Inbox screenshot](https://theperplexingpariah.co.uk/media/p-inbox.png)
+
+Whoami
+-------
+
+![Whoami screenshot](https://theperplexingpariah.co.uk/media/p-whoami.png)
