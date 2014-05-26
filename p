@@ -296,12 +296,32 @@ class P(object):
             note.send()
 
     def follow(self, webfinger):
-        """ Follow a user """
+        """ Follow a user
+        
+        This will follow a user that you previously
+        didn't follow.
+
+        Syntax:
+            $ p follow WEBFINGER
+        
+        Example:
+            $ p follow Tsyesika@microca.st
+        """
         person = self.pump.Person(webfinger)
         person.follow()
 
     def unfollow(self, webfinger):
-        """ Unfollow a user """
+        """ Unfollow a user 
+
+        This will stop following a user that you currently
+        follow.
+
+        Syntax:
+            $ p unfollow WEBFINGER
+
+        Example:
+            $ p unfollow Tsyesika@microca.st
+        """
         person = self.pump.Person(webfinger)
         person.unfollow()
 
