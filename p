@@ -20,6 +20,8 @@ class Output(object):
         self.stdout = sys.stdout
         self.stderr = sys.stderr
 
+        self.html_cleaner = re.compile(r'<[^>]+>')
+
     def fatal(self, message):
         """ Fatal message - will produce an error and exit with none 0 error code """
         self.error(message)
@@ -35,6 +37,7 @@ class Output(object):
         if color is not None:
             message = colored(message, color)
 
+        message = self.html_cleaner.sub("", message)
         self.stdout.write(message)
         self.stdout.write("\n")
 
@@ -166,6 +169,22 @@ class P(object):
 
         return "{0} ago".format(result)
 
+    def __display_object(self, obj, indent=0):
+        """ Displays an object """
+        content = obj.content
+        content = HTMLParser().unescape(content).strip()
+        
+        meta = "{name} - {date}".format(
+            name=colored(obj.author.display_name, color="yellow"),
+            date=colored(self.__relative_date(obj.published), color="red")
+        )
+
+        self.output.log(" "*indent + meta)
+
+        # Content can be multiple lines, all multiple lines must also be indented.
+        content = content.split("\n")
+        for line in content:
+            self.output.log(" "*indent + line)
 
     def help(self, subcommand=None):
         if subcommand is None:
@@ -360,7 +379,6 @@ class P(object):
     def inbox(self):
         """ Lists latest 20 notes in inbox """
         limit = 20
-        html_cleaner = re.compile(r'<[^>]+>')
         for activity in self.pump.me.inbox:
             if activity.verb != "post":
                 continue # skip these too
@@ -370,17 +388,11 @@ class P(object):
             if not isinstance(item, Note):
                 continue
 
-            
-            content = item.content
-            content = HTMLParser().unescape(html_cleaner.sub("", content)).strip()
-            
-            meta = "{name} - {date}".format(
-                name=colored(item.author.display_name, color="yellow"),
-                date=colored(self.__relative_date(item.published), color="red")
-            )
+            # TODO: deal with nested comments
+            self.__display_object(item)
+            for comment in item.comments[::-1]:
+                self.__display_object(comment, indent=4)
 
-            self.output.log(meta)
-            self.output.log(content)
             self.output.log("")
 
             if limit <= 0:
