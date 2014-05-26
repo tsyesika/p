@@ -81,16 +81,34 @@ class P(object):
 
         # If there is an account set - setup PyPump
         if settings["active"]:   
-            self.client = self.__get_client(settings["active"])
+            self._client = self.__get_client(settings["active"])
             # I know this isn't a website but the way WebPump works
             # is sligthly more what I want.
-            self.pump = WebPump(
+            self._pump = WebPump(
                 client=self.client,
                 verify_requests=self.settings["verify_ssl_certs"]
             )
         else:
-            self.client = None
-            self.pump = None
+            self._client = None
+            self._pump = None
+
+    @property
+    def pump(self):
+        """ Return PyPump isntance """
+        pump = getattr(self, "_pump")
+        if pump is None:
+            self.output.fatal("No active account. Use `p set active WEBFINGER` or `p authorize`")
+        
+        return pump
+
+    @property
+    def client(self):
+        """ Returns PyPump client instance """
+        client = getattr(self, "_client")
+        if client is None:
+            self.output.fatal("No active account. Use `p set active WEBFINGER` or `p authorize`")
+
+        return client
 
     def __get_client(self, webfinger):
         """ Gets pump.io client instance for webfinger """
@@ -259,8 +277,8 @@ class P(object):
     def authorize(self, webfinger):
         """ Authorize a new account """
         if self.pump is None or self.pump.client.webfinger != webfinger:
-            self.client = self.__get_client(webfinger)
-            self.pump = WebPump(
+            self._client = self.__get_client(webfinger)
+            self._pump = WebPump(
                 client=self.client,
                 verify_requests=self.settings["verify_ssl_certs"]
             )
