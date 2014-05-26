@@ -53,6 +53,7 @@ class P(object):
         p whoami
         p whois WEBFINGER
         p inbox
+        p list [NAME]
     """
 
     def __init__(self, settings, output):
@@ -365,6 +366,31 @@ class P(object):
                 return
 
             limit -= 1
+
+    def list(self, name=None):
+        """ List lists or people in lists
+
+        This will list everyone in a given list or if no list has been given
+        it will list all the lists which exist.
+        
+        Syntax:
+            $ p list [NAME]
+
+        Example:
+            $ p list
+            $ p list Family
+        """
+        if name is None:
+            for l in self.pump.me.lists:
+                self.output.log(l.display_name)
+            return
+
+        l = [l for l in self.pump.me.lists if l.display_name.lower() == name.lower()]
+        if not l:
+            self.output.fatal("No list can be found with name {0!r}.".format(name))
+
+        for person in l[0].members:
+            self.output.log(person.webfinger)
 
     def whoami(self):
         """ Display information on active user """
