@@ -26,7 +26,7 @@ $ virtualenv . && . bin/activate
 $ pip install -r requirements.txt
 ```
 
-(everytime you wish to use p you will have to do `. bin/active` this is until you have
+(everytime you wish to use p you will have to do `. bin/activate` this is until you have
 the dependecies installed on your system).
 
 You will also *need* to use `python p <command>` until you install the dependences in your
