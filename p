@@ -491,6 +491,49 @@ class P(object):
 
             limit -= 1
 
+    def outbox(self, webfinger=None):
+        """ Lists latest 20 notes in outbox
+
+            If no webfinger is specified it will list the latest notes for the
+            currently active account.
+            If webfinger is specified it will list the latest public notes for
+            that webfinger.
+
+            Syntax:
+                $ p outbox [WEBFINGER]
+
+            Example:
+                $ p outbox
+                $ p outbox Tsyesika@microca.st
+        """
+        limit = 20
+
+        if webfinger:
+            user = self.pump.Person(webfinger)
+        else:
+            user = self.pump.me
+
+        for activity in user.outbox:
+            if activity.verb != "post":
+                continue
+
+            item = activity.obj
+            if not isinstance(item, Note) or getattr(item, "deleted", True):
+                continue
+
+            self.__display_object(item)
+            comments = list(item.comments)
+            for comment in comments[::-1]:
+                self.__display_object(comment, indent=4)
+
+            self.output.log("")
+
+            if limit <= 0:
+                return
+
+            limit -= 1
+        
+
     def list(self, name=None):
         """ List lists or people in lists
 
