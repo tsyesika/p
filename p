@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+# -*- coding: utf-8 -*-
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -46,10 +46,10 @@ class Output(object):
         error = "{0} {1}".format(click.style("[Error]", fg="red"), message)
         click.echo(error, file=self.stderr)
 
-    def log(self, message, **kwargs):
+    def log(self, message, nl=True, **kwargs):
         """ Produce normal message """
         message = click.style(message, **kwargs)
-        click.echo(message, file=self.stdout)
+        click.echo(message, file=self.stdout, nl=nl)
 
 class P(object):
     """P - Pump.io command line utility.
@@ -282,8 +282,20 @@ class P(object):
         """ List all accounts authorized """
         store_data = self.pump.store.export()
         accounts = set([key.split("-")[0] for key in store_data.keys()])
+        max_length = max([len(a) for a in accounts]) + 1
+        self.output.log(click.style("Authorized", underline=True), nl=False)
+        self.output.log("    ", nl=False)
+        self.output.log(click.style("Webfinger"), underline=True)
         for account in accounts:
-            self.output.log(account)
+            output = u""
+            if account == self.settings["active"]:
+                account = click.style(account + " (active)", bold=True)
+            if "{0}-oauth-access".format(account):
+                output = click.style("     ✓        ", fg="green")
+            else:
+                otuput = click.style("     ✗        ", fg="red")
+
+            self.output.log(output + account.encode("utf-8"))
 
     def authorize(self, webfinger):
         """ Authorize a new account """
