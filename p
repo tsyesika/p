@@ -19,6 +19,7 @@ import sys
 import os
 import re
 import datetime
+import textwrap
 
 from HTMLParser import HTMLParser
 
@@ -33,8 +34,6 @@ class Output(object):
     def __init__(self):
         self.stdout = sys.stdout
         self.stderr = sys.stderr
-
-        self.html_cleaner = re.compile(r'<[^>]+>')
 
     def fatal(self, message):
         """ Fatal message - will produce an error and exit with none 0 error code """
@@ -51,7 +50,6 @@ class Output(object):
         if color is not None:
             message = colored(message, color)
 
-        message = self.html_cleaner.sub("", message)
         self.stdout.write(message)
         self.stdout.write("\n")
 
@@ -78,6 +76,8 @@ class P(object):
     def __init__(self, settings, output):
         self.settings = settings
         self.output = output
+        self.html_cleaner = re.compile(r'<[^>]+>')
+
 
         # If there is an account set - setup PyPump
         if settings["active"]:
@@ -213,10 +213,23 @@ class P(object):
 
         self.output.log(" "*indent + meta)
 
-        # Content can be multiple lines, all multiple lines must also be indented.
+        wrapper = textwrap.TextWrapper(
+            initial_indent=" "*indent,
+            break_on_hyphens=False,
+        )
+
+        content = self.html_cleaner.sub("", content)
         content = content.split("\n")
-        for line in content:
-            self.output.log(" "*indent + line)
+
+        while content:
+            line = content.pop(0)
+            fragments = wrapper.wrap(line)
+            content = fragments[1:] + content
+
+            if fragments:
+                self.output.log(fragments[0])
+            else:
+                self.output.log("")
 
     def help(self, subcommand=None):
         if subcommand is None:
@@ -422,7 +435,8 @@ class P(object):
 
             # TODO: deal with nested comments
             self.__display_object(item)
-            for comment in item.comments[::-1]:
+            comments = list(item.comments)
+            for comment in comments[::-1]:
                 self.__display_object(comment, indent=4)
 
             self.output.log("")
