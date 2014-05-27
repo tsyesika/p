@@ -92,7 +92,7 @@ class P(object):
 
     @property
     def pump(self):
-        """ Return PyPump isntance """
+        """ Return PyPump instance """
         pump = getattr(self, "_pump")
         if pump is None:
             self.output.fatal("No active account. Use `p set active WEBFINGER` or `p authorize`")
