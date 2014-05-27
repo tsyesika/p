@@ -382,14 +382,15 @@ class P(object):
         person.unfollow()
 
     def followers(self):
-        """ Display all users you follow """
+        """ Display all users following you """
         for person in self.pump.me.followers:
             self.output.log(person.webfinger)
 
     def following(self):
-        """ Display all users following you """
+        """ Display all users you follow """
         for person in self.pump.me.following:
             self.output.log(person.webfinger)
+
     def groupies(self):
         """ Display all users who follow you that you don't follow back """
         following = [p.webfinger for p in self.pump.me.following]
