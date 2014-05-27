@@ -401,6 +401,15 @@ class P(object):
             if person not in following:
                 self.output.log(person)
 
+    def friends(self):
+        """ Display all users who follow you that you follow back """
+        followers = [p.webfinger for p in self.pump.me.followers]
+        following = [p.webfinger for p in self.pump.me.following]
+
+        for person in followers:
+            if person in following:
+                self.output.log(person)
+
     def leaders(self):
         """ Display all the users you follow that don't follow you back """
         following = [p.webfinger for p in self.pump.me.following]
