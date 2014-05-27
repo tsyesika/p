@@ -300,7 +300,7 @@ class P(object):
 
     def authorize(self, webfinger):
         """ Authorize a new account """
-        if self.pump is None or self.pump.client.webfinger != webfinger:
+        if self._pump is None or self.pump.client.webfinger != webfinger:
             self._client = self.__get_client(webfinger)
             self._pump = WebPump(
                 client=self.client,
