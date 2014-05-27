@@ -28,7 +28,7 @@ from pypump.models.note import Note
 from termcolor import colored
 
 class Output(object):
-    """ Handle output of for program to provide uniform messages. """    
+    """ Handle output of for program to provide uniform messages. """
 
     def __init__(self):
         self.stdout = sys.stdout
@@ -80,7 +80,7 @@ class P(object):
         self.output = output
 
         # If there is an account set - setup PyPump
-        if settings["active"]:   
+        if settings["active"]:
             self._client = self.__get_client(settings["active"])
             # I know this isn't a website but the way WebPump works
             # is sligthly more what I want.
@@ -98,7 +98,7 @@ class P(object):
         pump = getattr(self, "_pump")
         if pump is None:
             self.output.fatal("No active account. Use `p set active WEBFINGER` or `p authorize`")
-        
+
         return pump
 
     @property
@@ -169,7 +169,7 @@ class P(object):
             (60 * 60, ungettext_lazy("%d hour", "%d hours")),
             (60, ungettext_lazy("%d minute", "%d minutes"))
         )
-    
+
         # Convert datetime.date to datetime.datetime for comparison.
         if not isinstance(d, datetime.datetime):
             d = datetime.datetime(d.year, d.month, d.day)
@@ -205,7 +205,7 @@ class P(object):
         """ Displays an object """
         content = obj.content
         content = HTMLParser().unescape(content).strip()
-        
+
         meta = "{name} - {date}".format(
             name=colored(obj.author.display_name, color="yellow"),
             date=colored(self.__relative_date(obj.published), color="red")
@@ -244,7 +244,7 @@ class P(object):
             $ p set
             active = someone@somewhere.com
             verify_ssl_cert = true
-            
+
             $ p set active
             someone@somewhere.com
 
@@ -282,7 +282,7 @@ class P(object):
                 client=self.client,
                 verify_requests=self.settings["verify_ssl_certs"]
             )
-        
+
         if self.pump.logged_in:
             self.output.fatal("You have already authorized this account.")
 
@@ -327,8 +327,8 @@ class P(object):
         if object_type == "image":
             if len(messages) <= 0:
                 self.output.fatal("Need to specify image path.")
-            
-            path = message[0]   
+
+            path = message[0]
             if not os.path.isfile(path):
                 self.output.fatal("File at path cannot be found {0!r}.".format(path))
 
@@ -351,13 +351,13 @@ class P(object):
 
     def follow(self, webfinger):
         """ Follow a user
-        
+
         This will follow a user that you previously
         didn't follow.
 
         Syntax:
             $ p follow WEBFINGER
-        
+
         Example:
             $ p follow Tsyesika@microca.st
         """
@@ -365,7 +365,7 @@ class P(object):
         person.follow()
 
     def unfollow(self, webfinger):
-        """ Unfollow a user 
+        """ Unfollow a user
 
         This will stop following a user that you currently
         follow.
@@ -399,9 +399,9 @@ class P(object):
                 self.output.log(person)
 
     def leaders(self):
-        """ Display all the users you follow that don't follow you back """ 
+        """ Display all the users you follow that don't follow you back """
         followers = [p.webfinger for p in self.pump.me.following]
-        following = [p.webfinger for p in self.pump.me.followers]       
+        following = [p.webfinger for p in self.pump.me.followers]
 
         # Find out who is in followers that isn't in following
         for person in following:
@@ -437,7 +437,7 @@ class P(object):
 
         This will list everyone in a given list or if no list has been given
         it will list all the lists which exist.
-        
+
         Syntax:
             $ p list [NAME]
 
@@ -494,14 +494,14 @@ class P(object):
             self.output.log(item)
 
 class Settings(JSONStore):
-   
+
     @classmethod
     def get_filename(cls):
         XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME", "~/.config")
         XDG_CONFIG_HOME = os.path.expanduser(XDG_CONFIG_HOME)
         if not os.path.isdir(XDG_CONFIG_HOME):
             os.mkdir(XDG_CONFIG_HOME)
-        
+
         path = os.path.join(os.path.expanduser(XDG_CONFIG_HOME), "p")
         if not os.path.isdir(path):
             os.mkdir(path)
@@ -509,12 +509,12 @@ class Settings(JSONStore):
         return os.path.join(path, "settings.json")
 
 if __name__ == "__main__":
-    settings = Settings.load(None, None) 
-    
+    settings = Settings.load(None, None)
+
     # Certain keys settings should have
     if "active" not in settings:
         settings["active"] = None
-    
+
     if "verify_ssl_certs" not in settings:
         settings["verify_ssl_certs"] = True
 
@@ -528,5 +528,5 @@ if __name__ == "__main__":
         command = getattr(p, sys.argv[1])
         if command is None:
             p.output.fatal("Unknown command '{0}'.".format(command))
-        
+
         command(*sys.argv[2:])
