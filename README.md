@@ -57,7 +57,7 @@ Switching between accounts
 
 To switch between multiple accounts you can use
 ```
-$ p set account <webfinger>
+$ p set active <webfinger>
 ```
 
 Usage
