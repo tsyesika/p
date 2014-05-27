@@ -288,12 +288,13 @@ class P(object):
         self.output.log(click.style("Webfinger"), underline=True)
         for account in accounts:
             output = u""
-            if account == self.settings["active"]:
-                account = click.style(account + " (active)", bold=True)
-            if "{0}-oauth-access".format(account):
+            if "{0}-oauth-access-token".format(account) in store_data.keys():
                 output = click.style("     ✓        ", fg="green")
             else:
-                otuput = click.style("     ✗        ", fg="red")
+                output = click.style("     ✗        ", fg="red")
+
+            if account == self.settings["active"]:
+                account = click.style(account + " (active)", bold=True)
 
             self.output.log(output + account.encode("utf-8"))
 
