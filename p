@@ -351,7 +351,7 @@ class P(object):
             note = self.pump.Note(message)
             note.send()
 
-    def follow(self, webfinger):
+    def follow(self, *webfingers):
         """ Follow a user
 
         This will follow a user that you previously
@@ -363,10 +363,14 @@ class P(object):
         Example:
             $ p follow Tsyesika@microca.st
         """
-        person = self.pump.Person(webfinger)
-        person.follow()
+        if not webfingers:
+            self.output.fatal("Need to specify webfinger(s).")
 
-    def unfollow(self, webfinger):
+        for webfinger in webfingers:
+            person = self.pump.Person(webfinger)
+            person.follow()
+
+    def unfollow(self, *webfingers):
         """ Unfollow a user
 
         This will stop following a user that you currently
@@ -378,8 +382,12 @@ class P(object):
         Example:
             $ p unfollow Tsyesika@microca.st
         """
-        person = self.pump.Person(webfinger)
-        person.unfollow()
+        if not webfingers:
+            self.output.fatal("Need to specify webfinger(s).")
+
+        for webfinger in webfingers:
+            person = self.pump.Person(webfinger)
+            person.unfollow()
 
     def followers(self):
         """ Display all users following you """
