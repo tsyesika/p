@@ -428,6 +428,45 @@ class P(object):
             if person not in followers:
                 self.output.log(person)
 
+    def intersection(self, *users):
+        """ Displays the intersection of users followed by the specified users
+
+        If only one user is specified, intersection is found between the user
+        and yourself. If two or more users are specified the intersection is
+        found between all those people. If no mutual users are found will exit
+        with a non-zero exit status.
+
+        Syntax:
+            $ p intersection USER [USER ...]
+
+        Example:
+            $ p intersection evan@e14n.com
+            $ p intersection moggers87@microca.st cwebber@identi.ca
+        """
+        if len(users) <= 0:
+            self.output.fatal("Must specify user(s) to find intersection with.")
+
+        if len(users) == 1:
+            users = [users[0], self.pump.me.webfinger]
+
+        # Find all the followers of each user.
+        following = []
+        for user in users:
+            user = self.pump.Person(user)
+            following.append([person.webfinger for person in user.following])
+
+        def in_lists(key, lists):
+            """ Returns true if key in all lists """
+            for l in lists:
+                if key not in l:
+                    return False
+
+            return True
+
+        for user in following[0]:
+            if in_lists(user, following[1:]):
+                self.output.log(user)
+
     def inbox(self):
         """ Lists latest 20 notes in inbox """
         limit = 20
