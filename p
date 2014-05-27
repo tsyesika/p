@@ -24,16 +24,17 @@ import textwrap
 from HTMLParser import HTMLParser
 
 import pytz
+import click
+
 from pypump import WebPump, Client, JSONStore
 from pypump.models.note import Note
-from termcolor import colored
 
 class Output(object):
     """ Handle output of for program to provide uniform messages. """
 
     def __init__(self):
-        self.stdout = sys.stdout
-        self.stderr = sys.stderr
+        self.stdout = click.get_text_stream('stdout')
+        self.stderr = click.get_text_stream('stderr')
 
     def fatal(self, message):
         """ Fatal message - will produce an error and exit with none 0 error code """
@@ -42,16 +43,13 @@ class Output(object):
 
     def error(self, message):
         """ Produce an error message """
-        self.stderr.write("{0} {1}".format(colored("[Error]", "red"), message))
-        self.stderr.write("\n")
+        error = "{0} {1}".format(click.style("[Error]", fg="red"), message)
+        click.echo(error, file=self.stderr)
 
-    def log(self, message, color=None):
+    def log(self, message, **kwargs):
         """ Produce normal message """
-        if color is not None:
-            message = colored(message, color)
-
-        self.stdout.write(message)
-        self.stdout.write("\n")
+        message = click.style(message, **kwargs)
+        click.echo(message, file=self.stdout)
 
 class P(object):
     """P - Pump.io command line utility.
@@ -184,7 +182,7 @@ class P(object):
         since = delta.days * 24 * 60 * 60 + delta.seconds
         if since <= 0:
             # d is in the future compared to now, stop processing.
-            return "Just now"
+            return u"Just now"
 
         for i, (seconds, name) in enumerate(chunks):
             count = since // seconds
@@ -199,16 +197,16 @@ class P(object):
             if count2 != 0:
                 result += ", " + name2(count2)
 
-        return "{0} ago".format(result)
+        return u"{0} ago".format(result)
 
     def __display_object(self, obj, indent=0):
         """ Displays an object """
         content = obj.content
         content = HTMLParser().unescape(content).strip()
 
-        meta = "{name} - {date}".format(
-            name=colored(obj.author.display_name, color="yellow"),
-            date=colored(self.__relative_date(obj.published), color="red")
+        meta = u"{name} - {date}".format(
+            name=click.style(obj.author.display_name, fg="yellow"),
+            date=click.style(self.__relative_date(obj.published), fg="red")
         )
 
         self.output.log(" "*indent + meta)
