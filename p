@@ -392,8 +392,8 @@ class P(object):
             self.output.log(person.webfinger)
     def groupies(self):
         """ Display all users who follow you that you don't follow back """
-        followers = [p.webfinger for p in self.pump.me.following]
-        following = [p.webfinger for p in self.pump.me.followers]
+        following = [p.webfinger for p in self.pump.me.following]
+        followers = [p.webfinger for p in self.pump.me.followers]
 
         # Find out who is in following that isn't in followers
         for person in followers:
@@ -402,8 +402,8 @@ class P(object):
 
     def leaders(self):
         """ Display all the users you follow that don't follow you back """
-        followers = [p.webfinger for p in self.pump.me.following]
-        following = [p.webfinger for p in self.pump.me.followers]
+        following = [p.webfinger for p in self.pump.me.following]
+        followers = [p.webfinger for p in self.pump.me.followers]
 
         # Find out who is in followers that isn't in following
         for person in following:
