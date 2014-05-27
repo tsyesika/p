@@ -349,7 +349,7 @@ class P(object):
             self.output.fatal("Unknown object type {0!r}.".format(object_type))
 
         if object_type == "image":
-            if len(messages) <= 0:
+            if len(message) <= 0:
                 self.output.fatal("Need to specify image path.")
 
             path = message[0]
