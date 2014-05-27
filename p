@@ -485,8 +485,8 @@ class P(object):
             ("URL", person.url),
             ("location", person.location),
             ("Bio", person.summary),
-            ("Followers", len(person.followers)),
-            ("Following", len(person.following)),
+            ("Followers", person.followers.total_items),
+            ("Following", person.following.total_items),
         ))
 
         # Remove any information which doesn't actually have a value
