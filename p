@@ -124,31 +124,6 @@ class P(object):
         verifier = raw_input("Verifier Code: ").strip(" ")
         return verifier
 
-    def __ask_y_or_n(self, question, default=True):
-        """ Asks a yes or no question """
-        if default:
-            question = "{question} [Y/n]: ".format(question=question)
-        else:
-            question = "{question} [y/N]: ".format(question=question)
-
-        answer = raw_input(question).strip()
-        choices = {
-            "y": True,
-            "yes": True,
-            "n": False,
-            "no": False,
-            # And for all yall na'vi speakers ;)
-            "sran": True,
-            "srane": True,
-            "kehe": False,
-        }
-
-        while answer.lower() not in choices.keys():
-            print "Unknown answer {0!r}. Please answer yes or no."
-            answer = raw_input(question).strip()
-
-        return choices[answer]
-
     def __relative_date(self, d, now=None, reversed=False):
         """ Returns fuzzy timestamp for date relative to now """
         # This was taken from django 1.6 which is under the BSD licence
@@ -202,6 +177,9 @@ class P(object):
     def __display_object(self, obj, indent=0):
         """ Displays an object """
         content = obj.content
+        if obj.content is None:
+            return # this happens apparently?
+
         content = HTMLParser().unescape(content).strip()
 
         meta = u"{name} - {date}".format(
@@ -320,7 +298,7 @@ class P(object):
             self.output.fatal("Something has gone wrong :(")
 
         if self.settings["active"] != self.pump.client.webfinger:
-            if self.__ask_y_or_n("Would you like to make {0!r} the active account".format(webfinger)):
+            if click.confirm("Make {0!r} the active account?".format(webfinger)):
                 self.settings["active"] = self.pump.client.webfinger
             else:
                 self.output.log("Okay, if you change your mind you can use the 'set' command.")
@@ -440,8 +418,7 @@ class P(object):
                 continue # skip these too
 
             item = activity.obj
-
-            if not isinstance(item, Note):
+            if not isinstance(item, Note) or getattr(item, "deleted", True):
                 continue
 
             # TODO: deal with nested comments
