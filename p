@@ -63,11 +63,14 @@ class P(object):
         p unfollow WEBFINGER
         p followers
         p following
+        p friends
         p leaders
         p groupies
+        p intersection WEBFINGER [WEBFINGER ...]
         p whoami
         p whois WEBFINGER
         p inbox
+        p outbox [WEBFINGER]
         p list [NAME]
     """
 
@@ -437,7 +440,7 @@ class P(object):
         with a non-zero exit status.
 
         Syntax:
-            $ p intersection USER [USER ...]
+            $ p intersection WEBFINGER [WEBFINGER ...]
 
         Example:
             $ p intersection evan@e14n.com
