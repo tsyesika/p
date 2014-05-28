@@ -248,10 +248,11 @@ class P(object):
                 self.output.log("{0} = {1}".format(setting, value))
             return
 
-        if setting is None and value is not None:
+        if setting is not None and value is None:
             # Just get value of specific setting
-            if setting not in self.settings:
+            if setting not in self.settings.keys():
                 self.output.log("Unknown setting {0!r}".format(setting))
+                return
 
             self.output.log(self.settings[setting])
             return
