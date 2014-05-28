@@ -494,17 +494,17 @@ class P(object):
     def outbox(self, webfinger=None):
         """ Lists latest 20 notes in outbox
 
-            If no webfinger is specified it will list the latest notes for the
-            currently active account.
-            If webfinger is specified it will list the latest public notes for
-            that webfinger.
+        If no webfinger is specified it will list the latest notes for the
+        currently active account.
+        If webfinger is specified it will list the latest public notes for
+        that webfinger.
 
-            Syntax:
-                $ p outbox [WEBFINGER]
+        Syntax:
+            $ p outbox [WEBFINGER]
 
-            Example:
-                $ p outbox
-                $ p outbox Tsyesika@microca.st
+        Example:
+            $ p outbox
+            $ p outbox Tsyesika@microca.st
         """
         limit = 20
 
