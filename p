@@ -522,9 +522,10 @@ def p_intersection(p, users):
 
 @cli.command('inbox')
 @pass_p
-def p_inbox(p):
+@click.option('--number', '-n', default=20, help='Number of items to show.')
+def p_inbox(p, number):
     """ Lists latest 20 notes in inbox. """
-    limit = 20
+    limit = number
     for activity in p.pump.me.inbox:
         if activity.verb != "post":
             continue # skip these too
@@ -541,15 +542,16 @@ def p_inbox(p):
 
         p.output.log("")
 
+        limit -= 1
+
         if limit <= 0:
             return
 
-        limit -= 1
-
 @cli.command('outbox')
 @pass_p
-@click.argument('webfinger')
-def p_outbox(p, webfinger=None):
+@click.argument('webfinger', default=None)
+@click.option('--number', '-n', default=20, help='Number of items to show.')
+def p_outbox(p, webfinger, number):
     """ Lists latest 20 notes in outbox.
 
     If no webfinger is specified it will list the latest notes for the
@@ -566,7 +568,7 @@ def p_outbox(p, webfinger=None):
         $ p outbox
         $ p outbox Tsyesika@microca.st
     """
-    limit = 20
+    limit = number
 
     if webfinger:
         user = p.pump.Person(webfinger)
@@ -588,10 +590,10 @@ def p_outbox(p, webfinger=None):
 
         p.output.log("")
 
+        limit -= 1
+
         if limit <= 0:
             return
-
-        limit -= 1
     
 @cli.command('list')
 @pass_p
