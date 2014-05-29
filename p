@@ -439,16 +439,32 @@ def p_unfollow(p, webfingers):
 
 @cli.command('followers')
 @pass_p
-def p_followers(p):
-    """ Display all users following you. """
-    for person in p.pump.me.followers:
+@click.argument('webfinger', default=None)
+def p_followers(p, webfinger):
+    """ Display all users following you.
+    If webfinger is given it will display users following that user.
+    """
+    if webfinger:
+        user = p.pump.Person(webfinger)
+    else:
+        user = p.pump.me
+
+    for person in user.followers:
         p.output.log(person.webfinger)
 
 @cli.command('following')
 @pass_p
-def p_following(p):
-    """ Display all users you follow. """
-    for person in p.pump.me.following:
+@click.argument('webfinger', default=None)
+def p_following(p, webfinger):
+    """ Display all users you follow.
+    If webfinger is given it will display users followed by that user.
+    """
+    if webfinger:
+        user = p.pump.Person(webfinger)
+    else:
+        user = p.pump.me
+
+    for person in user.following:
         p.output.log(person.webfinger)
 
 @cli.command('groupies')
