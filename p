@@ -52,27 +52,7 @@ class Output(object):
         click.echo(message, file=self.stdout, nl=nl)
 
 class P(object):
-    """P - Pump.io command line utility.
-
-    Commands:
-        p authorize WEBFINGER
-        p accounts
-        p post note CONTENT
-        p post image PATH
-        p follow WEBFINGER
-        p unfollow WEBFINGER
-        p followers
-        p following
-        p friends
-        p leaders
-        p groupies
-        p intersection WEBFINGER [WEBFINGER ...]
-        p whoami
-        p whois WEBFINGER
-        p inbox
-        p outbox [WEBFINGER]
-        p list [NAME]
-    """
+    """P - Pump.io command line utility. """
 
     def __init__(self, settings, output):
         self.settings = settings
@@ -210,394 +190,6 @@ class P(object):
             else:
                 self.output.log("")
 
-    def help(self, subcommand=None):
-        if subcommand is None:
-            # Display generic help
-            return self.output.log(self.__doc__)
-
-        method = getattr(self, subcommand)
-        if method is None:
-            self.output.fatal("Unknown command '{0}'.".format(subcommand))
-
-        self.output.log(method.__name__ + ":" + method.__doc__)
-
-    def activate(self, webfinger):
-        """ Change account p uses """
-        self.settings["active"] = webfinger
-
-    def set(self, setting=None, value=None):
-        """Set or retrive a setting.
-
-        If no setting or value is given all settings and values
-        will be listed. If just a setting is given just a value will
-        be returned.
-
-        Examples:
-            $ p set
-            active = someone@somewhere.com
-            verify_ssl_cert = true
-
-            $ p set active
-            someone@somewhere.com
-
-            $ p set active hai@bai.org
-        """
-        if setting is None and value is None:
-            # List all settings
-            for setting, value in self.settings.items():
-                self.output.log("{0} = {1}".format(setting, value))
-            return
-
-        if setting is not None and value is None:
-            # Just get value of specific setting
-            if setting not in self.settings.keys():
-                self.output.log("Unknown setting {0!r}".format(setting))
-                return
-
-            self.output.log(self.settings[setting])
-            return
-
-        # Set setting
-        self.settings[setting] = value
-
-    def accounts(self):
-        """ List all accounts authorized """
-        store_data = self.pump.store.export()
-        accounts = set([key.split("-")[0] for key in store_data.keys()])
-        max_length = max([len(a) for a in accounts]) + 1
-        self.output.log(click.style("Authorized", underline=True), nl=False)
-        self.output.log("    ", nl=False)
-        self.output.log(click.style("Webfinger"), underline=True)
-        for account in accounts:
-            output = u""
-            if "{0}-oauth-access-token".format(account) in store_data.keys():
-                output = click.style("     ✓        ", fg="green")
-            else:
-                output = click.style("     ✗        ", fg="red")
-
-            if account == self.settings["active"]:
-                account = click.style(account + " (active)", bold=True)
-
-            self.output.log(output + account.encode("utf-8"))
-
-    def authorize(self, webfinger):
-        """ Authorize a new account """
-        if self._pump is None or self.pump.client.webfinger != webfinger:
-            self._client = self.__get_client(webfinger)
-            self._pump = WebPump(
-                client=self.client,
-                verify_requests=self.settings["verify_ssl_certs"]
-            )
-
-        if self.pump.logged_in:
-            self.output.fatal("You have already authorized this account.")
-
-        verifier = self.__verification_callback(self.pump.url)
-        self.pump.verifier(verifier)
-
-        # That should be everything
-        if self.pump.logged_in:
-            self.output.log("Success!")
-        else:
-            self.output.fatal("Something has gone wrong :(")
-
-        if self.settings["active"] != self.pump.client.webfinger:
-            if click.confirm("Make {0!r} the active account?".format(webfinger)):
-                self.settings["active"] = self.pump.client.webfinger
-            else:
-                self.output.log("Okay, if you change your mind you can use the 'set' command.")
-
-        self.output.log("All done.")
-
-    def post(self, object_type, *message):
-        """ Post item to pump.io feed
-
-        This will post an object to your pump.io feed. If no
-        data is given it will assume the data will come from
-        stdio.
-
-        Syntax:
-            $ p post note [MESSAGE]
-            $ p post image [PATH]
-
-        TYPE: note image
-
-        Examples:
-            $ p post note "Hai I'm posting this from the command line ^_^"
-            $ p post image /home/jessica/Pictures/awesome.png
-            $ cat something.txt | p post note
-        """
-        if object_type not in ["image", "note"]:
-            self.output.fatal("Unknown object type {0!r}.".format(object_type))
-
-        if object_type == "image":
-            if len(message) <= 0:
-                self.output.fatal("Need to specify image path.")
-
-            path = message[0]
-            if not os.path.isfile(path):
-                self.output.fatal("File at path cannot be found {0!r}.".format(path))
-
-            image = self.pump.Image()
-            image.from_file(path)
-            return
-
-        if object_type == "note":
-            if message:
-                # Message has been given as an argument
-                message = " ".join(message)
-            else:
-                message = sys.stdin.read()
-
-            if not message:
-                self.output.fatal("No message provided.")
-
-            note = self.pump.Note(message)
-            note.send()
-
-    def follow(self, *webfingers):
-        """ Follow a user
-
-        This will follow a user that you previously
-        didn't follow.
-
-        Syntax:
-            $ p follow WEBFINGER
-
-        Example:
-            $ p follow Tsyesika@microca.st
-        """
-        if not webfingers:
-            self.output.fatal("Need to specify webfinger(s).")
-
-        for webfinger in webfingers:
-            person = self.pump.Person(webfinger)
-            person.follow()
-
-    def unfollow(self, *webfingers):
-        """ Unfollow a user
-
-        This will stop following a user that you currently
-        follow.
-
-        Syntax:
-            $ p unfollow WEBFINGER
-
-        Example:
-            $ p unfollow Tsyesika@microca.st
-        """
-        if not webfingers:
-            self.output.fatal("Need to specify webfinger(s).")
-
-        for webfinger in webfingers:
-            person = self.pump.Person(webfinger)
-            person.unfollow()
-
-    def followers(self):
-        """ Display all users following you """
-        for person in self.pump.me.followers:
-            self.output.log(person.webfinger)
-
-    def following(self):
-        """ Display all users you follow """
-        for person in self.pump.me.following:
-            self.output.log(person.webfinger)
-
-    def groupies(self):
-        """ Display all users who follow you that you don't follow back """
-        following = [p.webfinger for p in self.pump.me.following]
-        followers = [p.webfinger for p in self.pump.me.followers]
-
-        # Find out who is in following that isn't in followers
-        for person in followers:
-            if person not in following:
-                self.output.log(person)
-
-    def friends(self):
-        """ Display all users who follow you that you follow back """
-        followers = [p.webfinger for p in self.pump.me.followers]
-        following = [p.webfinger for p in self.pump.me.following]
-
-        for person in followers:
-            if person in following:
-                self.output.log(person)
-
-    def leaders(self):
-        """ Display all the users you follow that don't follow you back """
-        following = [p.webfinger for p in self.pump.me.following]
-        followers = [p.webfinger for p in self.pump.me.followers]
-
-        # Find out who is in followers that isn't in following
-        for person in following:
-            if person not in followers:
-                self.output.log(person)
-
-    def intersection(self, *users):
-        """ Displays the intersection of users followed by the specified users
-
-        If only one user is specified, intersection is found between the user
-        and yourself. If two or more users are specified the intersection is
-        found between all those people. If no mutual users are found will exit
-        with a non-zero exit status.
-
-        Syntax:
-            $ p intersection WEBFINGER [WEBFINGER ...]
-
-        Example:
-            $ p intersection evan@e14n.com
-            $ p intersection moggers87@microca.st cwebber@identi.ca
-        """
-        if len(users) <= 0:
-            self.output.fatal("Must specify user(s) to find intersection with.")
-
-        if len(users) == 1:
-            users = [users[0], self.pump.me.webfinger]
-
-        # Find all the followers of each user.
-        following = []
-        for user in users:
-            user = self.pump.Person(user)
-            following.append([person.webfinger for person in user.following])
-
-        def in_lists(key, lists):
-            """ Returns true if key in all lists """
-            for l in lists:
-                if key not in l:
-                    return False
-
-            return True
-
-        for user in following[0]:
-            if in_lists(user, following[1:]):
-                self.output.log(user)
-
-    def inbox(self):
-        """ Lists latest 20 notes in inbox """
-        limit = 20
-        for activity in self.pump.me.inbox:
-            if activity.verb != "post":
-                continue # skip these too
-
-            item = activity.obj
-            if not isinstance(item, Note) or getattr(item, "deleted", True):
-                continue
-
-            # TODO: deal with nested comments
-            self.__display_object(item)
-            comments = list(item.comments)
-            for comment in comments[::-1]:
-                self.__display_object(comment, indent=4)
-
-            self.output.log("")
-
-            if limit <= 0:
-                return
-
-            limit -= 1
-
-    def outbox(self, webfinger=None):
-        """ Lists latest 20 notes in outbox
-
-        If no webfinger is specified it will list the latest notes for the
-        currently active account.
-        If webfinger is specified it will list the latest public notes for
-        that webfinger.
-
-        Syntax:
-            $ p outbox [WEBFINGER]
-
-        Example:
-            $ p outbox
-            $ p outbox Tsyesika@microca.st
-        """
-        limit = 20
-
-        if webfinger:
-            user = self.pump.Person(webfinger)
-        else:
-            user = self.pump.me
-
-        for activity in user.outbox:
-            if activity.verb != "post":
-                continue
-
-            item = activity.obj
-            if not isinstance(item, Note) or getattr(item, "deleted", True):
-                continue
-
-            self.__display_object(item)
-            comments = list(item.comments)
-            for comment in comments[::-1]:
-                self.__display_object(comment, indent=4)
-
-            self.output.log("")
-
-            if limit <= 0:
-                return
-
-            limit -= 1
-        
-
-    def list(self, name=None):
-        """ List lists or people in lists
-
-        This will list everyone in a given list or if no list has been given
-        it will list all the lists which exist.
-
-        Syntax:
-            $ p list [NAME]
-
-        Example:
-            $ p list
-            $ p list Family
-        """
-        if name is None:
-            for l in self.pump.me.lists:
-                self.output.log(l.display_name)
-            return
-
-        l = [l for l in self.pump.me.lists if l.display_name.lower() == name.lower()]
-        if not l:
-            self.output.fatal("No list can be found with name {0!r}.".format(name))
-
-        for person in l[0].members:
-            self.output.log(person.webfinger)
-
-    def whoami(self):
-        """ Display information on active user """
-        return self.whois(self.pump.client.webfinger)
-
-    def whois(self, webfinger):
-        """ Display information on user. """
-        person = self.pump.Person(webfinger)
-        information = collections.OrderedDict((
-            ("Webfinger", person.webfinger),
-            ("Username", person.username),
-            ("Name", person.display_name),
-            ("URL", person.url),
-            ("location", person.location),
-            ("Bio", person.summary),
-            ("Followers", person.followers.total_items),
-            ("Following", person.following.total_items),
-        ))
-
-        # Remove any information which doesn't actually have a value
-        information = collections.OrderedDict(((key, value) for key, value in information.items() if value is not None))
-
-        # We want to line up all the values so find the max length of the keys
-        max_length = max(len(key) for key in information.keys())
-
-        if "location" in information:
-            if information["location"].name is not None:
-                information["location"] = information["location"].name
-            else:
-                del information["location"]
-
-        # Now display each value with the padding
-        for name, value in information.items():
-            padding = max_length - len(name) + 2
-            item = name + (" "*padding) + str(value)
-            self.output.log(item)
 
 class Settings(JSONStore):
 
@@ -614,6 +206,465 @@ class Settings(JSONStore):
 
         return os.path.join(path, "settings.json")
 
+
+pass_p = click.make_pass_decorator(P)
+
+@click.group()
+@click.pass_context
+def cli(ctx):
+    """P - Pump.io command line utility. """
+    ctx.obj = P(settings, Output())
+
+@cli.command('activate')
+@pass_p
+@click.argument('webfinger', required=True)
+def p_activate(p, webfinger):
+    """ Change account p uses. """
+    p.settings["active"] = webfinger
+
+@cli.command('set')
+@click.argument('setting', required=False)
+@click.argument('value', required=False)
+def p_set(p, setting=None, value=None):
+    """Set or retrive a setting.
+
+    If no setting or value is given all settings and values
+    will be listed. If just a setting is given just a value will
+    be returned.
+
+    Examples:
+        $ p set
+        active = someone@somewhere.com
+        verify_ssl_cert = true
+
+        $ p set active
+        someone@somewhere.com
+
+        $ p set active hai@bai.org
+    """
+    if setting is None and value is None:
+        # List all settings
+        for setting, value in p.settings.items():
+            p.output.log("{0} = {1}".format(setting, value))
+        return
+
+    if setting is not None and value is None:
+        # Just get value of specific setting
+        if setting not in p.settings.keys():
+            p.output.log("Unknown setting {0!r}".format(setting))
+            return
+
+        p.output.log(p.settings[setting])
+        return
+
+    # Set setting
+    p.settings[setting] = value
+
+@cli.command('accounts')
+@pass_p
+def p_accounts(p):
+    """ List all accounts authorized. """
+    store_data = p.pump.store.export()
+    accounts = set([key.split("-")[0] for key in store_data.keys()])
+    max_length = max([len(a) for a in accounts]) + 1
+    p.output.log(click.style("Authorized", underline=True), nl=False)
+    p.output.log("    ", nl=False)
+    p.output.log(click.style("Webfinger"), underline=True)
+    for account in accounts:
+        output = u""
+        if "{0}-oauth-access-token".format(account) in store_data.keys():
+            output = click.style("     ✓        ", fg="green")
+        else:
+            output = click.style("     ✗        ", fg="red")
+
+        if account == p.settings["active"]:
+            account = click.style(account + " (active)", bold=True)
+
+        p.output.log(output + account.encode("utf-8"))
+
+@cli.command('authorize')
+@pass_p
+@click.argument('webfinger', required=True)
+def p_authorize(p, webfinger):
+    """ Authorize a new account. """
+    if p._pump is None or p.pump.client.webfinger != webfinger:
+        p._client = p.__get_client(webfinger)
+        p._pump = WebPump(
+            client=p.client,
+            verify_requests=p.settings["verify_ssl_certs"]
+        )
+
+    if p.pump.logged_in:
+        p.output.fatal("You have already authorized this account.")
+
+    verifier = p.__verification_callback(p.pump.url)
+    p.pump.verifier(verifier)
+
+    # That should be everything
+    if p.pump.logged_in:
+        p.output.log("Success!")
+    else:
+        p.output.fatal("Something has gone wrong :(")
+
+    if p.settings["active"] != p.pump.client.webfinger:
+        if click.confirm("Make {0!r} the active account?".format(webfinger)):
+            p.settings["active"] = p.pump.client.webfinger
+        else:
+            p.output.log("Okay, if you change your mind you can use the 'set' command.")
+
+    p.output.log("All done.")
+
+@cli.group('post', short_help='Post item to pump.io feed')
+def p_post():
+    """ Post item to pump.io feed. """
+    pass
+
+@p_post.command('image', short_help='Post image to pump.io feed.')
+@pass_p
+@click.argument('path', required=True)
+def p_post_image(p, path):
+    """ Post image to pump.io feed.
+
+    This will post an image to your pump.io feed.
+
+    \b
+    Syntax:
+        $ p post image PATH
+
+    \b
+    Examples:
+        $ p post image /home/jessica/Pictures/awesome.png
+    """
+
+    if len(path) <= 0:
+        p.output.fatal("Need to specify image path.")
+
+    if not os.path.isfile(path):
+        p.output.fatal("File at path cannot be found {0!r}.".format(path))
+
+    image = p.pump.Image()
+    image.from_file(path)
+    return
+
+
+@p_post.command('note', short_help='Post note to pump.io feed.')
+@pass_p
+@click.argument('message', nargs=-1)
+def p_post_note(p, message):
+    """ Post note to pump.io feed
+
+    This will post a note to your pump.io feed. If no
+    data is given it will assume the data will come from
+    stdio.
+
+    \b
+    Syntax:
+        $ p post note [MESSAGE]
+
+    \b
+    Examples:
+        $ p post note "Hai I'm posting this from the command line ^_^"
+        $ cat something.txt | p post note
+    """
+
+    if message:
+        # Message has been given as an argument
+        message = " ".join(message)
+    else:
+        message = sys.stdin.read()
+
+    if not message:
+        p.output.fatal("No message provided.")
+
+    note = p.pump.Note(message)
+    note.send()
+
+@cli.command('follow')
+@pass_p
+@click.argument('webfingers', nargs=-1)
+def p_follow(p, webfingers):
+    """ Follow a user.
+
+    This will follow a user that you previously
+    didn't follow.
+
+    \b
+    Syntax:
+        $ p follow WEBFINGER
+
+    \b
+    Example:
+        $ p follow Tsyesika@microca.st
+    """
+    if not webfingers:
+        p.output.fatal("Need to specify webfinger(s).")
+
+    for webfinger in webfingers:
+        person = p.pump.Person(webfinger)
+        person.follow()
+
+@cli.command('unfollow')
+@pass_p
+@click.argument('webfingers', nargs=-1)
+def p_unfollow(p, webfingers):
+    """ Unfollow a user.
+
+    This will stop following a user that you currently
+    follow.
+
+    \b
+    Syntax:
+        $ p unfollow WEBFINGER
+
+    \b
+    Example:
+        $ p unfollow Tsyesika@microca.st
+    """
+    if not webfingers:
+        p.output.fatal("Need to specify webfinger(s).")
+
+    for webfinger in webfingers:
+        person = p.pump.Person(webfinger)
+        person.unfollow()
+
+@cli.command('followers')
+@pass_p
+def p_followers(p):
+    """ Display all users following you. """
+    for person in p.pump.me.followers:
+        p.output.log(person.webfinger)
+
+@cli.command('following')
+@pass_p
+def p_following(p):
+    """ Display all users you follow. """
+    for person in p.pump.me.following:
+        p.output.log(person.webfinger)
+
+@cli.command('groupies')
+@pass_p
+def p_groupies(p):
+    """ Display all users who follow you that you don't follow back. """
+    following = [u.webfinger for u in p.pump.me.following]
+    followers = [u.webfinger for u in p.pump.me.followers]
+
+    # Find out who is in following that isn't in followers
+    for person in followers:
+        if person not in following:
+            p.output.log(person)
+
+@cli.command('friends')
+@pass_p
+def p_friends(p):
+    """ Display all users who follow you that you follow back. """
+    followers = [u.webfinger for u in p.pump.me.followers]
+    following = [u.webfinger for u in p.pump.me.following]
+
+    for person in followers:
+        if person in following:
+            p.output.log(person)
+
+@cli.command('leaders')
+@pass_p
+def p_leaders(p):
+    """ Display all the users you follow that don't follow you back. """
+    following = [u.webfinger for u in p.pump.me.following]
+    followers = [u.webfinger for u in p.pump.me.followers]
+
+    # Find out who is in followers that isn't in following
+    for person in following:
+        if person not in followers:
+            p.output.log(person)
+
+@cli.command('intersection')
+@pass_p
+@click.argument('users', nargs=-1)
+def p_intersection(p, users):
+    """ Displays the intersection of users followed by the specified users.
+
+    If only one user is specified, intersection is found between the user
+    and yourself. If two or more users are specified the intersection is
+    found between all those people. If no mutual users are found will exit
+    with a non-zero exit status.
+
+    \b
+    Syntax:
+        $ p intersection WEBFINGER [WEBFINGER ...]
+
+    \b
+    Example:
+        $ p intersection evan@e14n.com
+        $ p intersection moggers87@microca.st cwebber@identi.ca
+    """
+    if len(users) <= 0:
+        p.output.fatal("Must specify user(s) to find intersection with.")
+
+    if len(users) == 1:
+        users = [users[0], p.pump.me.webfinger]
+
+    # Find all the followers of each user.
+    following = []
+    for user in users:
+        user = p.pump.Person(user)
+        following.append([person.webfinger for person in user.following])
+
+    def in_lists(key, lists):
+        """ Returns true if key in all lists """
+        for l in lists:
+            if key not in l:
+                return False
+
+        return True
+
+    for user in following[0]:
+        if in_lists(user, following[1:]):
+            p.output.log(user)
+
+@cli.command('inbox')
+@pass_p
+def p_inbox(p):
+    """ Lists latest 20 notes in inbox. """
+    limit = 20
+    for activity in p.pump.me.inbox:
+        if activity.verb != "post":
+            continue # skip these too
+
+        item = activity.obj
+        if not isinstance(item, Note) or getattr(item, "deleted", True):
+            continue
+
+        # TODO: deal with nested comments
+        p.__display_object(item)
+        comments = list(item.comments)
+        for comment in comments[::-1]:
+            p.__display_object(comment, indent=4)
+
+        p.output.log("")
+
+        if limit <= 0:
+            return
+
+        limit -= 1
+
+@cli.command('outbox')
+@pass_p
+@click.argument('webfinger')
+def p_outbox(p, webfinger=None):
+    """ Lists latest 20 notes in outbox.
+
+    If no webfinger is specified it will list the latest notes for the
+    currently active account.
+    If webfinger is specified it will list the latest public notes for
+    that webfinger.
+
+    \b
+    Syntax:
+        $ p outbox [WEBFINGER]
+
+    \b
+    Example:
+        $ p outbox
+        $ p outbox Tsyesika@microca.st
+    """
+    limit = 20
+
+    if webfinger:
+        user = p.pump.Person(webfinger)
+    else:
+        user = p.pump.me
+
+    for activity in user.outbox:
+        if activity.verb != "post":
+            continue
+
+        item = activity.obj
+        if not isinstance(item, Note) or getattr(item, "deleted", True):
+            continue
+
+        p.__display_object(item)
+        comments = list(item.comments)
+        for comment in comments[::-1]:
+            p.__display_object(comment, indent=4)
+
+        p.output.log("")
+
+        if limit <= 0:
+            return
+
+        limit -= 1
+    
+@cli.command('list')
+@pass_p
+@click.argument('name')
+def p_list(p, name=None):
+    """ List lists or people in lists.
+
+    This will list everyone in a given list or if no list has been given
+    it will list all the lists which exist.
+
+    \b
+    Syntax:
+        $ p list [NAME]
+
+    \b
+    Example:
+        $ p list
+        $ p list Family
+    """
+    if name is None:
+        for l in p.pump.me.lists:
+            p.output.log(l.display_name)
+        return
+
+    l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
+    if not l:
+        p.output.fatal("No list can be found with name {0!r}.".format(name))
+
+    for person in l[0].members:
+        p.output.log(person.webfinger)
+
+@cli.command('whoami')
+@click.pass_context
+def p_whoami(ctx):
+    """ Display information on active user. """
+    ctx.invoke(p_whois, ctx.obj.pump.client.webfinger)
+
+@cli.command('whois')
+@pass_p
+@click.argument('webfinger', required=True)
+def p_whois(p, webfinger):
+    """ Display information on user. """
+    person = p.pump.Person(webfinger)
+    information = collections.OrderedDict((
+        ("Webfinger", person.webfinger),
+        ("Username", person.username),
+        ("Name", person.display_name),
+        ("URL", person.url),
+        ("location", person.location),
+        ("Bio", person.summary),
+        ("Followers", person.followers.total_items),
+        ("Following", person.following.total_items),
+    ))
+
+    # Remove any information which doesn't actually have a value
+    information = collections.OrderedDict(((key, value) for key, value in information.items() if value is not None))
+
+    # We want to line up all the values so find the max length of the keys
+    max_length = max(len(key) for key in information.keys())
+
+    if "location" in information:
+        if information["location"].name is not None:
+            information["location"] = information["location"].name
+        else:
+            del information["location"]
+
+    # Now display each value with the padding
+    for name, value in information.items():
+        padding = max_length - len(name) + 2
+        item = name + (" "*padding) + str(value)
+        p.output.log(item)
+
+
 if __name__ == "__main__":
     settings = Settings.load(None, None)
 
@@ -624,15 +675,4 @@ if __name__ == "__main__":
     if "verify_ssl_certs" not in settings:
         settings["verify_ssl_certs"] = True
 
-    p = P(settings, Output())
-
-    # Parse the command line arguments
-    if len(sys.argv) <= 1:
-        # display the help message
-        p.help()
-    else:
-        command = getattr(p, sys.argv[1])
-        if command is None:
-            p.output.fatal("Unknown command '{0}'.".format(command))
-
-        command(*sys.argv[2:])
+    cli()
