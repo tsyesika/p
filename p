@@ -223,6 +223,7 @@ def p_activate(p, webfinger):
     p.settings["active"] = webfinger
 
 @cli.command('set')
+@pass_p
 @click.argument('setting', required=False)
 @click.argument('value', required=False)
 def p_set(p, setting=None, value=None):
