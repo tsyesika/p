@@ -73,7 +73,7 @@ Post a new note
 
 Post a note by using:
 ```
-$ p post "I'm posting a note via the command line ^_^"
+$ p post note "I'm posting a note via the command line ^_^"
 ```
 
 (For compatability with t `p update` is aliased to `p new`).
