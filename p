@@ -620,6 +620,33 @@ def p_outbox(p, webfinger, number):
 
         if limit <= 0:
             return
+
+@cli.command('favorites')
+@pass_p
+@click.argument('webfinger', default=None)
+@click.option('--number', '-n', default=20, help='Number of items to show.')
+def p_favorites(p, webfinger, number):
+    """ Display items favorited by you.
+    If webfinger is given, display items favorited by user.
+    """
+    limit = number
+
+    if webfinger:
+        user = p.pump.Person(webfinger)
+    else:
+        user = p.pump.me
+
+    for item in user.favorites:
+
+        p._display_object(item)
+
+        p.output.log("")
+
+        limit -= 1
+
+        if limit <= 0:
+            return
+
     
 @cli.command('lists')
 @pass_p
