@@ -356,7 +356,8 @@ def p_post_image(p, path):
 @p_post.command('note', short_help='Post note to pump.io feed.')
 @pass_p
 @click.argument('message', nargs=-1)
-def p_post_note(p, message):
+@click.option('--editor', '-e', is_flag=True, help='Open message in external editor.')
+def p_post_note(p, message, editor):
     """ Post note to pump.io feed
 
     This will post a note to your pump.io feed. If no
@@ -372,12 +373,14 @@ def p_post_note(p, message):
         $ p post note "Hai I'm posting this from the command line ^_^"
         $ cat something.txt | p post note
     """
-
-    if message:
-        # Message has been given as an argument
-        message = " ".join(message)
+    if editor:
+        message = click.edit(*message)
     else:
-        message = sys.stdin.read()
+        if message:
+            # Message has been given as an argument
+            message = " ".join(message)
+        else:
+            message = sys.stdin.read()
 
     if not message:
         p.output.fatal("No message provided.")
