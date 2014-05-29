@@ -63,9 +63,9 @@ $ p set active <webfinger>
 Usage
 ======
 
-Type `p help` to list the available commands. To get more information you can do:
+Type `p --help` to list the available commands. To get more information you can do:
 ```
-$ p help <subcommand>
+$ p <subcommand> --help
 ```
 
 Post a new note
