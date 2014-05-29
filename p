@@ -231,12 +231,13 @@ def p_set(p, setting=None, value=None):
     If no setting or value is given all settings and values
     will be listed. If just a setting is given just a value will
     be returned.
-
+    
+    \b
     Examples:
         $ p set
         active = someone@somewhere.com
         verify_ssl_cert = true
-
+        \b
         $ p set active
         someone@somewhere.com
 
@@ -286,7 +287,12 @@ def p_accounts(p):
 @pass_p
 @click.argument('webfinger', required=True)
 def p_authorize(p, webfinger):
-    """ Authorize a new account. """
+    """ Authorize a new account.
+
+    \b
+    Example:
+        p authorize username@microca.st
+    """
     if p._pump is None or p.pump.client.webfinger != webfinger:
         p._client = p._get_client(webfinger)
         p._pump = WebPump(
@@ -390,7 +396,7 @@ def p_follow(p, webfingers):
 
     \b
     Syntax:
-        $ p follow WEBFINGER
+        $ p follow WEBFINGER [WEBFINGER] ...
 
     \b
     Example:
@@ -414,7 +420,7 @@ def p_unfollow(p, webfingers):
 
     \b
     Syntax:
-        $ p unfollow WEBFINGER
+        $ p unfollow WEBFINGER [WEBFINGER] ...
 
     \b
     Example:
