@@ -595,29 +595,72 @@ def p_outbox(p, webfinger, number):
         if limit <= 0:
             return
     
-@cli.command('list')
+@cli.command('lists')
+@pass_p
+def p_lists(p):
+    """ List all lists for the active user. """
+    for l in p.pump.me.lists:
+        p.output.log(l.display_name)
+    return
+
+@cli.group('list')
+def p_list():
+    """ Manage a list. """
+    pass
+
+@p_list.command('create')
 @pass_p
 @click.argument('name')
-def p_list(p, name=None):
-    """ List lists or people in lists.
+def p_list_create(p, name):
+    """ Create a list. """
+    l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
+    if l:
+        p.output.fatal("List with name {0!r} already exists.".format(name))
 
-    This will list everyone in a given list or if no list has been given
-    it will list all the lists which exist.
+    p.pump.me.lists.create(name)
 
-    \b
-    Syntax:
-        $ p list [NAME]
+@p_list.command('delete')
+@pass_p
+@click.argument('name', required=True)
+def p_list_delete(p, name):
+    """ Delete a list. """
+    l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
+    if not l:
+        p.output.fatal("No list can be found with name {0!r}.".format(name))
+    #TODO confirmation?
+    l[0].delete()
 
-    \b
-    Example:
-        $ p list
-        $ p list Family
-    """
-    if name is None:
-        for l in p.pump.me.lists:
-            p.output.log(l.display_name)
-        return
+@p_list.command('add')
+@pass_p
+@click.argument('name', required=True)
+@click.argument('webfingers', nargs=-1)
+def p_list_add(p, name, webfingers):
+    """ Add a person to a list. """
+    l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
+    if not l:
+        p.output.fatal("No list can be found with name {0!r}.".format(name))
+    for w in webfingers:
+        u = p.pump.Person(w)
+        l[0].add(u)
 
+@p_list.command('remove')
+@pass_p
+@click.argument('name', required=True)
+@click.argument('webfingers', nargs=-1)
+def p_list_add(p, name, webfingers):
+    """ Remove a person from a list. """
+    l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
+    if not l:
+        p.output.fatal("No list can be found with name {0!r}.".format(name))
+    for w in webfingers:
+        u = p.pump.Person(w)
+        l[0].remove(u)
+
+@p_list.command('members')
+@pass_p
+@click.argument('name', required=True)
+def p_list_members(p, name):
+    """ Display all the members of a list. """
     l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
     if not l:
         p.output.fatal("No list can be found with name {0!r}.".format(name))
