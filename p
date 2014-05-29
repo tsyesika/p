@@ -612,7 +612,16 @@ def p_list():
 @pass_p
 @click.argument('name')
 def p_list_create(p, name):
-    """ Create a list. """
+    """ Create a list.
+
+    \b
+    Syntax:
+        p list create NAME
+
+    \b
+    Example:
+        p list create pypumpers
+    """
     l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
     if l:
         p.output.fatal("List with name {0!r} already exists.".format(name))
@@ -623,7 +632,16 @@ def p_list_create(p, name):
 @pass_p
 @click.argument('name', required=True)
 def p_list_delete(p, name):
-    """ Delete a list. """
+    """ Delete a list.
+
+    \b
+    Syntax:
+        p list delete NAME
+
+    \b
+    Example:
+        p list delete pypumpers
+    """
     l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
     if not l:
         p.output.fatal("No list can be found with name {0!r}.".format(name))
@@ -635,7 +653,16 @@ def p_list_delete(p, name):
 @click.argument('name', required=True)
 @click.argument('webfingers', nargs=-1)
 def p_list_add(p, name, webfingers):
-    """ Add a person to a list. """
+    """ Add members to a list.
+
+    \b
+    Syntax:
+        p list add NAME WEBFINGER [WEBFINGER] ...
+
+    \b
+    Example:
+        p list add pypumpers moggers87@microca.st Tsyesika@microca.st
+    """
     l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
     if not l:
         p.output.fatal("No list can be found with name {0!r}.".format(name))
@@ -648,7 +675,16 @@ def p_list_add(p, name, webfingers):
 @click.argument('name', required=True)
 @click.argument('webfingers', nargs=-1)
 def p_list_add(p, name, webfingers):
-    """ Remove a person from a list. """
+    """ Remove members from a list.
+
+    \b
+    Syntax:
+        p list remove NAME WEBFINGER [WEBFINGER] ...
+
+    \b
+    Example:
+        p list remove pypumpers moggers87@microca.st Tsyesika@microca.st
+    """
     l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
     if not l:
         p.output.fatal("No list can be found with name {0!r}.".format(name))
@@ -660,7 +696,16 @@ def p_list_add(p, name, webfingers):
 @pass_p
 @click.argument('name', required=True)
 def p_list_members(p, name):
-    """ Display all the members of a list. """
+    """ Display all members of a list.
+    
+    \b
+    Syntax:
+        p list members NAME
+
+    \b
+    Example:
+        p list members pypumpers
+    """
     l = [l for l in p.pump.me.lists if l.display_name.lower() == name.lower()]
     if not l:
         p.output.fatal("No list can be found with name {0!r}.".format(name))
