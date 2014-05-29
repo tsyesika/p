@@ -62,7 +62,7 @@ class P(object):
 
         # If there is an account set - setup PyPump
         if settings["active"]:
-            self._client = self.__get_client(settings["active"])
+            self._client = self._get_client(settings["active"])
             # I know this isn't a website but the way WebPump works
             # is sligthly more what I want.
             self._pump = WebPump(
@@ -91,7 +91,7 @@ class P(object):
 
         return client
 
-    def __get_client(self, webfinger):
+    def _get_client(self, webfinger):
         """ Gets pump.io client instance for webfinger """
         return Client(
             webfinger=webfinger,
@@ -99,7 +99,7 @@ class P(object):
             type="native"
         )
 
-    def __verification_callback(self, url):
+    def _verification_callback(self, url):
         """ Ask user for verifier code for OOB authorization """
         self.output.log("To add an account you need to authorize p to use your")
         self.output.log("account and paste the verifier:")
@@ -157,7 +157,7 @@ class P(object):
 
         return u"{0} ago".format(result)
 
-    def __display_object(self, obj, indent=0):
+    def _display_object(self, obj, indent=0):
         """ Displays an object """
         content = obj.content
         if obj.content is None:
@@ -288,7 +288,7 @@ def p_accounts(p):
 def p_authorize(p, webfinger):
     """ Authorize a new account. """
     if p._pump is None or p.pump.client.webfinger != webfinger:
-        p._client = p.__get_client(webfinger)
+        p._client = p._get_client(webfinger)
         p._pump = WebPump(
             client=p.client,
             verify_requests=p.settings["verify_ssl_certs"]
@@ -297,7 +297,7 @@ def p_authorize(p, webfinger):
     if p.pump.logged_in:
         p.output.fatal("You have already authorized this account.")
 
-    verifier = p.__verification_callback(p.pump.url)
+    verifier = p._verification_callback(p.pump.url)
     p.pump.verifier(verifier)
 
     # That should be everything
@@ -534,10 +534,10 @@ def p_inbox(p):
             continue
 
         # TODO: deal with nested comments
-        p.__display_object(item)
+        p._display_object(item)
         comments = list(item.comments)
         for comment in comments[::-1]:
-            p.__display_object(comment, indent=4)
+            p._display_object(comment, indent=4)
 
         p.output.log("")
 
@@ -581,10 +581,10 @@ def p_outbox(p, webfinger=None):
         if not isinstance(item, Note) or getattr(item, "deleted", True):
             continue
 
-        p.__display_object(item)
+        p._display_object(item)
         comments = list(item.comments)
         for comment in comments[::-1]:
-            p.__display_object(comment, indent=4)
+            p._display_object(comment, indent=4)
 
         p.output.log("")
 
