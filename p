@@ -439,7 +439,7 @@ def p_unfollow(p, webfingers):
 
 @cli.command('followers')
 @pass_p
-@click.argument('webfinger', default=None)
+@click.argument('webfinger', required=False)
 def p_followers(p, webfinger):
     """ Display all users following you.
     If webfinger is given it will display users following that user.
@@ -454,7 +454,7 @@ def p_followers(p, webfinger):
 
 @cli.command('following')
 @pass_p
-@click.argument('webfinger', default=None)
+@click.argument('webfinger', required=False)
 def p_following(p, webfinger):
     """ Display all users you follow.
     If webfinger is given it will display users followed by that user.
@@ -575,7 +575,7 @@ def p_inbox(p, number):
 
 @cli.command('outbox')
 @pass_p
-@click.argument('webfinger', default=None)
+@click.argument('webfinger', required=False)
 @click.option('--number', '-n', default=20, help='Number of items to show.')
 def p_outbox(p, webfinger, number):
     """ Lists latest 20 notes in outbox.
@@ -623,7 +623,7 @@ def p_outbox(p, webfinger, number):
 
 @cli.command('favorites')
 @pass_p
-@click.argument('webfinger', default=None)
+@click.argument('webfinger', required=False)
 @click.option('--number', '-n', default=20, help='Number of items to show.')
 def p_favorites(p, webfinger, number):
     """ Display items favorited by you.
