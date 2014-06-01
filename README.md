@@ -68,7 +68,7 @@ Type `p --help` to list the available commands. To get more information you can 
 $ p <subcommand> --help
 ```
 
-Post a new note
+Posting content
 ---------------
 
 Post a note by using:
@@ -76,7 +76,24 @@ Post a note by using:
 $ p post note "I'm posting a note via the command line ^_^"
 ```
 
-(For compatability with t `p update` is aliased to `p new`).
+Post an image:
+```
+$ p post image /home/jessica/Pictures/awesome.png
+```
+
+Titles of notes and images can be set with the option `--title <string>`.
+```
+$ p post image /path/to/my_cool_image.png --title "My cool image.."
+```
+
+Recipients can be set with the options `--to` and `--cc` and can be:
+ * a webfinger (user@server.tld)
+ * the name of a user created list (see `$ p lists`)
+ * `followers` or `public`
+(if no recipients are set cc=followers is used by default)
+```
+$ p post note "It's too early" --title "Yaawn" --to kabniel@microca.st --cc followers
+```
 
 Lookup a user
 -------------
@@ -96,30 +113,46 @@ To follow a user
 $ p follow <webfinger>
 ```
 
-Unfollow
---------
+Unfollow user
+-------------
 
 To unfollow a user
 ```
 $ p unfollow <webfinger>
 ```
 
-Post an object
---------------
-
-You can post notes and images via p, there are several ways this is how:
-```
-$ p post note "Hai this is a message from p ^_^."
-$ p post image /home/jessica/Pictures/awesome.png
-$ cat something.txt | p post note
-```
-
 Read your inbox
 ---------------
 
-You can see items in your inbox by doing, this by default will show the last 20 items:
+You can see items in your inbox, this by default will show the last 20 items:
 ```
 $ p inbox
+```
+
+Working with lists
+------------------
+Lists can be used as recipients when posting things.
+
+Display your lists:
+```
+$ p lists
+```
+
+Create and delete a list:
+```
+$ p list create <list>
+$ p list delete <list>
+```
+
+Display members of a list:
+```
+$ p list members <list>
+```
+
+Add and remove a list member:
+```
+$ p list add <list> <webfinger>
+$ p list remove <list> <webfinger>
 ```
 
 Licence
