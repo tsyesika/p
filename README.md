@@ -90,6 +90,7 @@ Recipients can be set with the options `--to` and `--cc` and can be:
  * a webfinger (user@server.tld)
  * the name of a user created list (see `$ p lists`)
  * `followers` or `public`
+
 (if no recipients are set cc=followers is used by default)
 ```
 $ p post note "It's too early" --title "Yaawn" --to kabniel@microca.st --cc followers
