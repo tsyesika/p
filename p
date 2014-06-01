@@ -190,6 +190,28 @@ class P(object):
             else:
                 self.output.log("")
 
+    def prepare_recipients(self, data):
+        """ Prepare recipients.
+
+        Prepare a list of webfingers and collection names
+        before being used as recipients.
+        """
+        prepped = []
+        for item in data:
+            if "@" in item:
+                prepped.append(self.pump.Person(item))
+            elif item.lower() == "followers":
+                prepped.append(self.pump.me.followers)
+            elif item.lower() == "public":
+                prepped.append(self.pump.Public)
+            else:
+                #try to find a user list
+                for i in self.pump.me.lists:
+                    if i.display_name == item:
+                        prepped.append(i)
+
+        return prepped
+
 
 class Settings(JSONStore):
 
@@ -353,17 +375,22 @@ def p_post_image(p, path):
     image.from_file(path)
     return
 
-
 @p_post.command('note', short_help='Post note to pump.io feed.')
 @pass_p
-@click.argument('message', nargs=-1)
+@click.argument('message', required=False)
 @click.option('--editor', '-e', is_flag=True, help='Open message in external editor.')
-def p_post_note(p, message, editor):
+@click.option('--title', help="Note title.")
+@click.option('--to', multiple=True, help="Note to.")
+@click.option('--cc', multiple=True, help="Note cc.")
+def p_post_note(p, message, editor, title, to, cc):
     """ Post note to pump.io feed
 
     This will post a note to your pump.io feed. If no
     data is given it will assume the data will come from
     stdio.
+
+    --to, --cc takes one argument but can be used multiple times. Accepts a webfinger,
+    a list (p lists) or the special values "followers" and "public".
 
     \b
     Syntax:
@@ -373,20 +400,25 @@ def p_post_note(p, message, editor):
     Examples:
         $ p post note "Hai I'm posting this from the command line ^_^"
         $ cat something.txt | p post note
+        $ p post note --title "Notes beginning.." "..in titles are annoying"
+        $ p post note --to Tsyesika@microca.st --cc "followers" "Hey there"
     """
     if editor:
-        message = click.edit(*message)
+        message = click.edit(message)
     else:
         if message:
-            # Message has been given as an argument
-            message = " ".join(message)
+            pass
         else:
             message = sys.stdin.read()
 
     if not message:
         p.output.fatal("No message provided.")
 
-    note = p.pump.Note(message)
+    note = p.pump.Note(message, display_name=title)
+
+    note.to = p.prepare_recipients(to)
+    note.cc = p.prepare_recipients(cc)
+
     note.send()
 
 @cli.command('follow')
