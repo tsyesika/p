@@ -389,7 +389,7 @@ def p_post_image(p, path, title, to, cc):
 @click.option('--to', multiple=True, help="Note to.")
 @click.option('--cc', multiple=True, help="Note cc.")
 def p_post_note(p, message, editor, title, to, cc):
-    """ Post note to pump.io feed
+    """ Post note to pump.io feed.
 
     This will post a note to your pump.io feed. If no
     data is given it will assume the data will come from
