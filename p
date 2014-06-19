@@ -65,10 +65,14 @@ class P(object):
             self._client = self._get_client(settings["active"])
             # I know this isn't a website but the way WebPump works
             # is sligthly more what I want.
-            self._pump = WebPump(
-                client=self.client,
-                verify_requests=self.settings["verify_ssl_certs"]
-            )
+            try:
+                self._pump = WebPump(
+                    client=self.client,
+                    verify_requests=self.settings["verify_ssl_certs"]
+                )
+            except:
+                self.output.error("Could not load account: {0}".format(settings["active"]))
+
         else:
             self._client = None
             self._pump = None
