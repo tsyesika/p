@@ -838,8 +838,8 @@ def p_whois(p, webfinger):
     max_length = max(len(key) for key in information.keys())
 
     if "location" in information:
-        if information["location"].name is not None:
-            information["location"] = information["location"].name
+        if information["location"].display_name is not None:
+            information["location"] = information["location"].display_name
         else:
             del information["location"]
 
