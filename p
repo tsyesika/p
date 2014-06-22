@@ -25,9 +25,11 @@ from HTMLParser import HTMLParser
 
 import pytz
 import click
+import html2text
 
 from pypump import WebPump, Client, JSONStore
 from pypump.models.note import Note
+from pypump.models.image import Image
 
 class Output(object):
     """ Handle output of for program to provide uniform messages. """
@@ -162,37 +164,39 @@ class P(object):
         return u"{0} ago".format(result)
 
     def _display_object(self, obj, indent=0):
-        """ Displays an object """
-        content = obj.content
-        if obj.content is None:
-            return # this happens apparently?
 
-        content = HTMLParser().unescape(content).strip()
+        def indenter(msg, cnt=4):
+            msg = msg.split("\n")
+            newmsg = [u"{0}{1}".format(" "*cnt, i) for i in msg]
+            return "\n".join(newmsg)
+
+        html2text.INLINE_LINKS = False
+        md = html2text.html2text
+        body_width = click.get_terminal_size()[0] - (indent*2)
 
         meta = u"{name} - {date}".format(
-            name=click.style(obj.author.display_name, fg="yellow"),
+            name=click.style(u"{0}".format(obj.author), fg="yellow"),
             date=click.style(self.__relative_date(obj.published), fg="red")
         )
+        self.output.log(indenter(meta, indent))
 
-        self.output.log(" "*indent + meta)
+        if obj.display_name:
+            title = click.style(u"{0}\n".format(obj.display_name), fg="blue")
+            self.output.log(indenter(title, indent))
 
-        wrapper = textwrap.TextWrapper(
-            initial_indent=" "*indent,
-            break_on_hyphens=False,
-        )
-
-        content = self.html_cleaner.sub("", content)
-        content = content.split("\n")
-
-        while content:
-            line = content.pop(0)
-            fragments = wrapper.wrap(line)
-            content = fragments[1:] + content
-
-            if fragments:
-                self.output.log(fragments[0])
-            else:
-                self.output.log("")
+        content = u""
+        # add image to top of content if image object
+        if isinstance(obj, Image):
+            content = u"<p><img src='{0}' alt='Image {1}x{2}'/></p>".format(
+                obj.original.url,
+                obj.original.width,
+                obj.original.height
+            )
+        if obj.content:
+            content = content + obj.content
+        #convert to markdown
+        content = md(content, bodywidth=body_width).rstrip()
+        self.output.log(indenter(content, indent))
 
     def prepare_recipients(self, data):
         """ Prepare recipients.
@@ -591,28 +595,38 @@ def p_intersection(p, users):
 @cli.command('inbox')
 @pass_p
 @click.option('--number', '-n', default=20, help='Number of items to show.')
-def p_inbox(p, number):
+@click.option('--unread', is_flag=True, help='Only show unread items.')
+def p_inbox(p, number, unread):
     """ Lists latest 20 notes in inbox. """
     limit = number
-    for activity in p.pump.me.inbox:
-        if activity.verb != "post":
-            continue # skip these too
-
-        item = activity.obj
-        if not isinstance(item, Note) or getattr(item, "deleted", True):
+    last_read = None
+    if unread:
+        last_setting = "{wf}-inbox-lastread".format(wf=p.pump.me.webfinger)
+        #get last read from settings or inbox[number]
+        last_read = p.settings.get(last_setting) or p.pump.me.inbox.major[number].id
+    for activity in p.pump.me.inbox.major.items(limit=None, since=last_read):
+        if activity.obj.deleted:
+            #skip deleted objects
             continue
 
+        p.output.log(click.style(u"{0}".format(activity), fg="green"))
+
+        item = activity.obj
+        p._display_object(item, indent=2)
+
         # TODO: deal with nested comments
-        p._display_object(item)
-        comments = list(item.comments)
-        for comment in comments[::-1]:
-            p._display_object(comment, indent=4)
+        if hasattr(item, 'comments'):
+            comments = list(item.comments)
+            for comment in comments[::-1]:
+                p._display_object(comment, indent=4)
 
         p.output.log("")
+        if unread:
+            p.settings[last_setting] = activity.id
 
         limit -= 1
 
-        if limit <= 0:
+        if number > 0 and limit <= 0:
             return
 
 @cli.command('outbox')

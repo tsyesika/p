@@ -2,3 +2,4 @@
 -e git+https://github.com/mitsuhiko/click.git#egg=click
 colorama
 pytz
+html2text
