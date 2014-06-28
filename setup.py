@@ -35,6 +35,8 @@ setup(
                 "click",
                 "colorama",
                 "pytz",
+                "six",
+                "html2text"
                 ],
         dependency_links=[
                 "https://github.com/xray7224/PyPump/tarball/master#egg=pypump-0.6",

@@ -21,7 +21,7 @@ import re
 import datetime
 import textwrap
 
-from HTMLParser import HTMLParser
+from six.moves.html_parser import HTMLParser
 
 import pytz
 import click
