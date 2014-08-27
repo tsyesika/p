@@ -826,7 +826,7 @@ def p_list_members(p, name):
 @click.pass_context
 def p_whoami(ctx):
     """ Display information on active user. """
-    ctx.invoke(p_whois, ctx.obj.pump.client.webfinger)
+    ctx.invoke(p_whois, webfinger=ctx.obj.pump.client.webfinger)
 
 @cli.command('whois')
 @pass_p
