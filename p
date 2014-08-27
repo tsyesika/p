@@ -657,18 +657,20 @@ def p_outbox(p, webfinger, number):
     else:
         user = p.pump.me
 
-    for activity in user.outbox:
-        if activity.verb != "post":
+    for activity in user.outbox.major.items(limit=None):
+        if activity.obj.deleted:
+            #skip deleted objects
             continue
+
+        p.output.log(click.style(u"{0}".format(activity), fg="green"))
 
         item = activity.obj
-        if not isinstance(item, Note) or getattr(item, "deleted", True):
-            continue
 
-        p._display_object(item)
-        comments = list(item.comments)
-        for comment in comments[::-1]:
-            p._display_object(comment, indent=4)
+        p._display_object(item, indent=2)
+        if hasattr(item, 'comments'):
+            comments = list(item.comments)
+            for comment in comments[::-1]:
+                p._display_object(comment, indent=4)
 
         p.output.log("")
 
