@@ -781,7 +781,7 @@ def p_list_add(p, name, webfingers):
 @pass_p
 @click.argument('name', required=True)
 @click.argument('webfingers', nargs=-1)
-def p_list_add(p, name, webfingers):
+def p_list_remove(p, name, webfingers):
     """ Remove members from a list.
 
     \b
