@@ -19,16 +19,12 @@ import sys
 import os
 import re
 import datetime
-import textwrap
-
-from six.moves.html_parser import HTMLParser
 
 import pytz
 import click
 import html2text
 
 from pypump import WebPump, Client, JSONStore
-from pypump.models.note import Note
 from pypump.models.image import Image
 
 class Output(object):
