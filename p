@@ -862,7 +862,7 @@ def p_whois(p, webfinger):
     # Now display each value with the padding
     for name, value in information.items():
         padding = max_length - len(name) + 2
-        item = name + (" "*padding) + str(value)
+        item = u"{0}{1}{2}".format(name, " "*padding, value)
         p.output.log(item)
 
 
