@@ -66,6 +66,7 @@ class P(object):
             try:
                 self._pump = WebPump(
                     client=self.client,
+                    store=Credentials.load(settings["active"], None),
                     verify_requests=self.settings["verify_ssl_certs"]
                 )
             except:
@@ -233,6 +234,22 @@ class Settings(JSONStore):
         return os.path.join(path, "settings.json")
 
 
+class Credentials(JSONStore):
+
+    @classmethod
+    def get_filename(cls):
+        XDG_CONFIG_HOME = os.environ.get("XDG_CONFIG_HOME", "~/.config")
+        XDG_CONFIG_HOME = os.path.expanduser(XDG_CONFIG_HOME)
+        if not os.path.isdir(XDG_CONFIG_HOME):
+            os.mkdir(XDG_CONFIG_HOME)
+
+        path = os.path.join(os.path.expanduser(XDG_CONFIG_HOME), "p")
+        if not os.path.isdir(path):
+            os.mkdir(path)
+
+        return os.path.join(path, "credentials.json")
+
+
 pass_p = click.make_pass_decorator(P)
 
 @click.group()
@@ -324,6 +341,7 @@ def p_authorize(p, webfinger):
         p._client = p._get_client(webfinger)
         p._pump = WebPump(
             client=p.client,
+            store=Credentials.load(webfinger, None),
             verify_requests=p.settings["verify_ssl_certs"]
         )
 
