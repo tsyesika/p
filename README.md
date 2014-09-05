@@ -60,6 +60,10 @@ To switch between multiple accounts you can use
 $ p set active <webfinger>
 ```
 
+Files
+-----
+Configuration files are stored in `XDG_CONFIG_HOME/p` or `~/.config/p`
+
 Usage
 ======
 
