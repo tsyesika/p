@@ -309,9 +309,8 @@ def p_set(p, setting=None, value=None):
 @pass_p
 def p_accounts(p):
     """ List all accounts authorized. """
-    store_data = p.pump.store.export()
+    store_data = Credentials.load(None, None).export()
     accounts = set([key.split("-")[0] for key in store_data.keys()])
-    max_length = max([len(a) for a in accounts]) + 1
     p.output.log(click.style("Authorized", underline=True), nl=False)
     p.output.log("    ", nl=False)
     p.output.log(click.style("Webfinger"), underline=True)
