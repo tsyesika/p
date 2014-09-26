@@ -29,10 +29,6 @@ from pypump.models.image import Image
 
 class PPump(WebPump):
 
-    def __init__(self, *args, **kwargs):
-        self.endpoint_prefix = None
-        super(PPump, self).__init__(*args, **kwargs)
-
     def _requester(self, fnc, endpoint, raw=False, **kwargs):
         if raw or not self.endpoint_prefix:
             return super(PPump, self)._requester(
