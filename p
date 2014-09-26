@@ -27,31 +27,6 @@ import html2text
 from pypump import WebPump, Client, JSONStore
 from pypump.models.image import Image
 
-class PPump(WebPump):
-
-    def _requester(self, fnc, endpoint, raw=False, **kwargs):
-        if raw or not self.endpoint_prefix:
-            return super(PPump, self)._requester(
-                fnc=fnc,
-                endpoint=endpoint,
-                raw=raw,
-                **kwargs
-            )
-
-        if not self.endpoint_prefix.endswith("/"):
-            self.endpoint_prefix += "/"
-
-        if endpoint.startswith("/"):
-            endpoint = endpoint[1:]
-
-        endpoint = self.endpoint_prefix + endpoint
-        return super(PPump, self)._requester(
-            fnc=fnc,
-            endpoint=endpoint,
-            raw=raw,
-            **kwargs
-        )
-
 class Output(object):
     """ Handle output of for program to provide uniform messages. """
 
@@ -82,19 +57,18 @@ class P(object):
         self.output = output
         self.html_cleaner = re.compile(r'<[^>]+>')
 
+
         # If there is an account set - setup PyPump
         if settings["active"]:
             self._client = self._get_client(settings["active"])
             # I know this isn't a website but the way WebPump works
             # is sligthly more what I want.
             try:
-                self._pump = PPump(
+                self._pump = WebPump(
                     client=self.client,
                     store=Credentials.load(settings["active"], None),
                     verify_requests=self.settings["verify_ssl_certs"]
                 )
-                if "subdirectory" in settings:
-                    self._pump.endpoint_prefix = settings["subdirectory"]
             except:
                 self.output.error("Could not load account: {0}".format(settings["active"]))
 
@@ -301,7 +275,7 @@ def p_set(p, setting=None, value=None):
     If no setting or value is given all settings and values
     will be listed. If just a setting is given just a value will
     be returned.
-
+    
     \b
     Examples:
         $ p set
@@ -364,7 +338,7 @@ def p_authorize(p, webfinger):
     """
     if p._pump is None or p.pump.client.webfinger != webfinger:
         p._client = p._get_client(webfinger)
-        p._pump = P(
+        p._pump = WebPump(
             client=p.client,
             store=Credentials.load(webfinger, None),
             verify_requests=p.settings["verify_ssl_certs"]
@@ -744,7 +718,7 @@ def p_favorites(p, webfinger, number):
         if limit <= 0:
             return
 
-
+    
 @cli.command('lists')
 @pass_p
 def p_lists(p):
@@ -847,7 +821,7 @@ def p_list_remove(p, name, webfingers):
 @click.argument('name', required=True)
 def p_list_members(p, name):
     """ Display all members of a list.
-
+    
     \b
     Syntax:
         p list members NAME
