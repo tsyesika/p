@@ -718,7 +718,55 @@ def p_favorites(p, webfinger, number):
         if limit <= 0:
             return
 
-    
+@cli.command('firehose')
+@pass_p
+@click.option('--number', '-n', default=20, help='Number of items to show.')
+def p_firehose(p, number):
+    """ Display items in the public firehose (https://ofirehose.com)
+    """
+    from pypump.models import Feed
+    import requests
+
+    class Firehose(Feed):
+        """ Firehose feed """
+
+        def _request(self, url, offset=None, since=None, before=None):
+            """ Basic http GET request instead of the OAuth Feed._request.
+            offset, since, before params are ignored by ofirehose so we
+            dont include them in request
+            """
+            data = requests.request("GET", url).json()
+            self.unserialize(data)
+            return data
+
+    firehose = Firehose(url='https://ofirehose.com/feed.json', pypump=p.pump)
+
+
+    limit = number
+
+    for activity in firehose:
+        if activity.obj.deleted:
+            #skip deleted objects
+            continue
+
+        p.output.log(click.style(u"{0}".format(activity), fg="green"))
+
+        item = activity.obj
+
+        p._display_object(item, indent=2)
+        if hasattr(item, 'comments'):
+            comments = list(item.comments)
+            for comment in comments[::-1]:
+                p._display_object(comment, indent=4)
+
+        p.output.log("")
+
+        limit -= 1
+
+        if limit <= 0:
+            return
+
+
 @cli.command('lists')
 @pass_p
 def p_lists(p):
