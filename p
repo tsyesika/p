@@ -167,7 +167,7 @@ class P(object):
             newmsg = [u"{0}{1}".format(" "*cnt, i) for i in msg]
             return "\n".join(newmsg)
 
-        html2text.INLINE_LINKS = False
+        html2text.config.INLINE_LINKS = False
         md = html2text.html2text
         body_width = click.get_terminal_size()[0] - (indent*2)
 
