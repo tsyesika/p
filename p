@@ -725,23 +725,21 @@ def p_firehose(p, number):
     """ Display items in the public firehose (https://ofirehose.com)
     """
     from pypump.models import Feed
-    import requests
 
-    class Firehose(Feed):
-        """ Firehose feed """
+    class MyFeed(Feed):
+        """ Custom Feed using a basic GET request without OAuth"""
 
         def _request(self, url, offset=None, since=None, before=None):
-            """ Basic http GET request instead of the OAuth Feed._request.
+            """ Basic GET request instead of the OAuth Feed._request.
             offset, since, before params are ignored by ofirehose so we
             dont include them in request
             """
-            data = requests.request("GET", url).json()
+            data = p.pump.request(url, raw=True, client=False)
             self.unserialize(data)
             return data
 
-    firehose = Firehose(url='https://ofirehose.com/feed.json', pypump=p.pump)
 
-
+    firehose = MyFeed(url='https://ofirehose.com/feed.json', pypump=p.pump)
     limit = number
 
     for activity in firehose:
