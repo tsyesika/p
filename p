@@ -400,7 +400,12 @@ def p_post_image(p, path, title, to, cc):
     image.to = p.prepare_recipients(to)
     image.cc = p.prepare_recipients(cc)
     image.from_file(path)
-    return
+    if '://' in image.url:
+        url = image.url
+    else:
+        base = re.match('^[^/]*://[^/]*/', p.pump.url).group()
+        url = base + (image.url[1:] if image.url[:1] == '/' else image.url)
+    p.output.log(url)
 
 @p_post.command('note', short_help='Post note to pump.io feed.')
 @pass_p
