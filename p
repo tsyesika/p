@@ -375,7 +375,9 @@ def p_post():
 @click.option('--title', help="Image title.")
 @click.option('--to', multiple=True, help="Image to.")
 @click.option('--cc', multiple=True, help="Image cc.")
-def p_post_image(p, path, title, to, cc):
+@click.option('--return', 'echovar', type=click.Choice(['id', 'url', 'original', 'thumbnail']),
+                                             help="Return this on success.")
+def p_post_image(p, path, title, to, cc, echovar):
     """ Post image to pump.io feed.
 
     This will post an image to your pump.io feed.
@@ -387,7 +389,8 @@ def p_post_image(p, path, title, to, cc):
     \b
     Examples:
         $ p post image /home/jessica/Pictures/awesome.png
-        $ p post image --title "My kitteh" --to followers ~/kitteh9001.png
+        $ p post image --title "My kitteh" --to followers ~/kitteh9001.png --return url
+        https://example.com/path/to/image/entry
     """
 
     if len(path) <= 0:
@@ -400,6 +403,15 @@ def p_post_image(p, path, title, to, cc):
     image.to = p.prepare_recipients(to)
     image.cc = p.prepare_recipients(cc)
     image.from_file(path)
+    if echovar:
+        if echovar in ['id', 'url']:
+            p.output.log(getattr(image, echovar))
+        elif echovar in ['original', 'thumbnail']:
+            if echovar == 'thumbnail' and hasattr(image, echovar):
+                imgobj = image.thumbnail
+            else:
+                imgobj = image.original
+            p.output.log(imgobj.url)
     return
 
 @p_post.command('note', short_help='Post note to pump.io feed.')
