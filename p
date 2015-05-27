@@ -315,16 +315,15 @@ def p_accounts(p):
     p.output.log("    ", nl=False)
     p.output.log(click.style("Webfinger"), underline=True)
     for account in accounts:
-        output = u""
         if "{0}-oauth-access-token".format(account) in store_data.keys():
-            output = click.style("     ✓        ", fg="green")
+            output = click.style(u"     ✓        ", fg="green")
         else:
-            output = click.style("     ✗        ", fg="red")
+            output = click.style(u"     ✗        ", fg="red")
 
         if account == p.settings["active"]:
             account = click.style(account + " (active)", bold=True)
 
-        p.output.log(output + account.encode("utf-8"))
+        p.output.log(output + account)
 
 @cli.command('authorize')
 @pass_p
