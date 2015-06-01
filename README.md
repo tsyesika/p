@@ -23,14 +23,11 @@ ImportError: No module named pypump
 That's because you don't have the modules you need to, please run:
 ```
 $ virtualenv . && . bin/activate
-$ pip install -r requirements.txt
+$ pip install --editable .
 ```
 
 (everytime you wish to use p you will have to do `. bin/activate` this is until you have
-the dependecies installed on your system).
-
-You will also *need* to use `python p <command>` until you install the dependences in your
-real enviroment (not in a virtual one).
+the dependencies installed on your system).
 
 
 Configure
