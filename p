@@ -420,7 +420,9 @@ def p_post_image(p, path, title, to, cc, echovar):
 @click.option('--title', help="Note title.")
 @click.option('--to', multiple=True, help="Note to.")
 @click.option('--cc', multiple=True, help="Note cc.")
-def p_post_note(p, message, editor, title, to, cc):
+@click.option('--return', 'echovar', type=click.Choice(['id', 'url']),
+                                             help="Return this on success.")
+def p_post_note(p, message, editor, title, to, cc, echovar):
     """ Post note to pump.io feed.
 
     This will post a note to your pump.io feed. If no
@@ -458,6 +460,10 @@ def p_post_note(p, message, editor, title, to, cc):
     note.cc = p.prepare_recipients(cc)
 
     note.send()
+
+    if echovar in ['id', 'url']:
+        p.output.log(getattr(note, echovar))
+
 
 @cli.command('follow')
 @pass_p
