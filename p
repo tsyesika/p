@@ -30,9 +30,10 @@ from pypump.models.image import Image
 class Output(object):
     """ Handle output of for program to provide uniform messages. """
 
-    def __init__(self):
+    def __init__(self, color):
         self.stdout = click.get_text_stream('stdout')
         self.stderr = click.get_text_stream('stderr')
+        self.color = color
 
     def fatal(self, message):
         """ Fatal message - will produce an error and exit with none 0 error code """
@@ -42,12 +43,12 @@ class Output(object):
     def error(self, message):
         """ Produce an error message """
         error = "{0} {1}".format(click.style("[Error]", fg="red"), message)
-        click.echo(error, file=self.stderr)
+        click.echo(error, file=self.stderr, color=self.color)
 
     def log(self, message, nl=True, **kwargs):
         """ Produce normal message """
         message = click.style(message, **kwargs)
-        click.echo(message, file=self.stdout, nl=nl)
+        click.echo(message, file=self.stdout, nl=nl, color=self.color)
 
 class P(object):
     """P - Pump.io command line utility. """
@@ -254,9 +255,10 @@ pass_p = click.make_pass_decorator(P)
 
 @click.group()
 @click.pass_context
-def cli(ctx):
+@click.option('--color/--no-color', 'color', default=None, help='Forcefully enable/disable colored output.')
+def cli(ctx, color=None):
     """P - Pump.io command line utility. """
-    ctx.obj = P(settings, Output())
+    ctx.obj = P(settings, Output(color))
 
 @cli.command('activate')
 @pass_p
