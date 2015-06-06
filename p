@@ -48,7 +48,10 @@ class Output(object):
     def log(self, message, nl=True, **kwargs):
         """ Produce normal message """
         message = click.style(message, **kwargs)
-        click.echo(message, file=self.stdout, nl=nl, color=self.color)
+        try:
+            click.echo(message, file=self.stdout, nl=nl, color=self.color)
+        except IOError as err:
+            self.fatal(err)
 
 class P(object):
     """P - Pump.io command line utility. """
