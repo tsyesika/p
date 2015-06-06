@@ -375,11 +375,12 @@ def p_post():
 @click.argument('path', required=True)
 @click.option('--title', help="Image title.")
 @click.option('--description', help="Image description.")
+@click.option('--license', help="Image license.")
 @click.option('--to', multiple=True, help="Image to.")
 @click.option('--cc', multiple=True, help="Image cc.")
 @click.option('--return', 'echovar', type=click.Choice(['id', 'url', 'original', 'thumbnail']),
                                              help="Return this on success.")
-def p_post_image(p, path, title, description, to, cc, echovar):
+def p_post_image(p, path, title, description, license, to, cc, echovar):
     """ Post image to pump.io feed.
 
     This will post an image to your pump.io feed.
@@ -401,7 +402,7 @@ def p_post_image(p, path, title, description, to, cc, echovar):
     if not os.path.isfile(path):
         p.output.fatal("File at path cannot be found {0!r}.".format(path))
 
-    image = p.pump.Image(display_name=title, content=description)
+    image = p.pump.Image(display_name=title, content=description, license=license)
     image.to = p.prepare_recipients(to)
     image.cc = p.prepare_recipients(cc)
     image.from_file(path)
