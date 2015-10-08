@@ -25,7 +25,7 @@ import click
 import html2text
 
 from pypump import WebPump, Client, JSONStore
-from pypump.models.image import Image
+from pypump.models.media import (Image, Video, Audio)
 
 class Output(object):
     """ Handle output of for program to provide uniform messages. """
