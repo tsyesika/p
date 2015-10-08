@@ -373,6 +373,30 @@ def p_post():
     """ Post item to pump.io feed. """
     pass
 
+def p_post_file(p, model, path, title, description, license, to, cc, echovar):
+    if len(path) <= 0:
+        p.output.fatal("Need to specify file path.")
+
+    if not os.path.isfile(path):
+        p.output.fatal("File at path cannot be found {0!r}.".format(path))
+
+    myfile = model(display_name=title, content=description, license=license)
+    myfile.to = p.prepare_recipients(to)
+    myfile.cc = p.prepare_recipients(cc)
+    myfile.from_file(path)
+    if echovar:
+        if echovar in ['id', 'url']:
+            p.output.log(getattr(myfile, echovar))
+        elif echovar in ['original', 'thumbnail']:
+            if echovar == 'thumbnail' and hasattr(myfile, echovar):
+                obj = myfile.thumbnail
+            elif echovar == 'original' and hasattr(myfile, echovar):
+                obj = myfile.original
+            p.output.log(obj.url)
+    return
+
+
+
 @p_post.command('image', short_help='Post image to pump.io feed.')
 @pass_p
 @click.argument('path', required=True)
@@ -398,27 +422,61 @@ def p_post_image(p, path, title, description, license, to, cc, echovar):
         $ p post image --title "My kitteh" --to followers ~/kitteh9001.png --return url
         https://example.com/path/to/image/entry
     """
+    p_post_file(p, p.pump.Image, path, title, description, license, to, cc, echovar)
 
-    if len(path) <= 0:
-        p.output.fatal("Need to specify image path.")
+@p_post.command('video', short_help='Post video to pump.io feed.')
+@pass_p
+@click.argument('path', required=True)
+@click.option('--title', help="video title.")
+@click.option('--description', help="Video description.")
+@click.option('--license', help="Video license.")
+@click.option('--to', multiple=True, help="Video to.")
+@click.option('--cc', multiple=True, help="Video cc.")
+@click.option('--return', 'echovar', type=click.Choice(['id', 'url']),
+                                             help="Return this on success.")
+def p_post_video(p, path, title, description, license, to, cc, echovar):
+    """ Post video to pump.io feed.
 
-    if not os.path.isfile(path):
-        p.output.fatal("File at path cannot be found {0!r}.".format(path))
+    This will post a video object to your pump.io feed.
 
-    image = p.pump.Image(display_name=title, content=description, license=license)
-    image.to = p.prepare_recipients(to)
-    image.cc = p.prepare_recipients(cc)
-    image.from_file(path)
-    if echovar:
-        if echovar in ['id', 'url']:
-            p.output.log(getattr(image, echovar))
-        elif echovar in ['original', 'thumbnail']:
-            if echovar == 'thumbnail' and hasattr(image, echovar):
-                imgobj = image.thumbnail
-            else:
-                imgobj = image.original
-            p.output.log(imgobj.url)
-    return
+    \b
+    Syntax:
+        $ p post video PATH
+
+    \b
+    Examples:
+        $ p post video /home/jessica/vids/awesome.ogv
+        $ p post video --title "My kitteh" --to followers ~/kitteh9001.ogv --return url
+        https://example.com/path/to/video/entry
+    """
+    p_post_file(p, p.pump.Video, path, title, description, license, to, cc, echovar)
+
+@p_post.command('audio', short_help='Post audio to pump.io feed.')
+@pass_p
+@click.argument('path', required=True)
+@click.option('--title', help="Audio title.")
+@click.option('--description', help="Audio description.")
+@click.option('--license', help="Audio license.")
+@click.option('--to', multiple=True, help="Audio to.")
+@click.option('--cc', multiple=True, help="Audio cc.")
+@click.option('--return', 'echovar', type=click.Choice(['id', 'url']),
+                                             help="Return this on success.")
+def p_post_audio(p, path, title, description, license, to, cc, echovar):
+    """ Post audio to pump.io feed.
+
+    This will post an audio object to your pump.io feed.
+
+    \b
+    Syntax:
+        $ p post audio PATH
+
+    \b
+    Examples:
+        $ p post audio /home/jessica/tunes/awesome.ogg
+        $ p post audio --title "My kitteh" --to followers ~/kitteh9001.ogg --return url
+        https://example.com/path/to/audio/entry
+    """
+    p_post_file(p, p.pump.Audio, path, title, description, license, to, cc, echovar)
 
 @p_post.command('note', short_help='Post note to pump.io feed.')
 @pass_p
