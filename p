@@ -728,7 +728,7 @@ def p_favorites(p, webfinger, number):
         if limit <= 0:
             return
 
-@cli.command('firehose')
+#@cli.command('firehose')
 @pass_p
 @click.option('--number', '-n', default=20, help='Number of items to show.')
 def p_firehose(p, number):
