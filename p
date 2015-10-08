@@ -629,19 +629,15 @@ def p_intersection(p, users):
         if in_lists(user, following[1:]):
             p.output.log(user)
 
-@cli.command('inbox')
-@pass_p
-@click.option('--number', '-n', default=20, help='Number of items to show.')
-@click.option('--unread', is_flag=True, help='Only show unread items.')
-def p_inbox(p, number, unread):
-    """ Lists latest 20 notes in inbox. """
+def p_activityfeed(p, feed, number, last_setting=None):
+    """ Lists items in feed. """
     limit = number
     last_read = None
-    if unread:
-        last_setting = "{wf}-inbox-lastread".format(wf=p.pump.me.webfinger)
-        #get last read from settings or inbox[number]
-        last_read = p.settings.get(last_setting) or p.pump.me.inbox.major[number].id
-    for activity in p.pump.me.inbox.major.items(limit=None, since=last_read):
+
+    if last_setting:
+        #get last read from settings or feed[number]
+        last_read = p.settings.get(last_setting) or feed[number].id
+    for activity in feed.items(limit=None, since=last_read):
         if activity.obj.deleted:
             #skip deleted objects
             continue
@@ -658,13 +654,24 @@ def p_inbox(p, number, unread):
                 p._display_object(comment, indent=4)
 
         p.output.log("")
-        if unread:
+        if last_setting:
             p.settings[last_setting] = activity.id
 
         limit -= 1
 
         if number > 0 and limit <= 0:
             return
+
+@cli.command('inbox')
+@pass_p
+@click.option('--number', '-n', default=20, help='Number of items to show.')
+@click.option('--unread', is_flag=True, help='Only show unread items.')
+def p_inbox(p, number, unread):
+    """ Lists latest 20 notes in inbox. """
+    if unread:
+        last_setting = "{wf}-inbox-lastread".format(wf=p.pump.me.webfinger)
+
+    p_activityfeed(p, p.pump.me.inbox.major, number, last_setting)
 
 @cli.command('outbox')
 @pass_p
@@ -687,34 +694,13 @@ def p_outbox(p, webfinger, number):
         $ p outbox
         $ p outbox Tsyesika@microca.st
     """
-    limit = number
 
     if webfinger:
         user = p.pump.Person(webfinger)
     else:
         user = p.pump.me
 
-    for activity in user.outbox.major.items(limit=None):
-        if activity.obj.deleted:
-            #skip deleted objects
-            continue
-
-        p.output.log(click.style(u"{0}".format(activity), fg="green"))
-
-        item = activity.obj
-
-        p._display_object(item, indent=2)
-        if hasattr(item, 'comments'):
-            comments = list(item.comments)
-            for comment in comments[::-1]:
-                p._display_object(comment, indent=4)
-
-        p.output.log("")
-
-        limit -= 1
-
-        if limit <= 0:
-            return
+    p_activityfeed(p, user.outbox.major, number)
 
 @cli.command('favorites')
 @pass_p
@@ -764,30 +750,8 @@ def p_firehose(p, number):
 
 
     firehose = MyFeed(url='https://ofirehose.com/feed.json', pypump=p.pump)
-    limit = number
 
-    for activity in firehose:
-        if activity.obj.deleted:
-            #skip deleted objects
-            continue
-
-        p.output.log(click.style(u"{0}".format(activity), fg="green"))
-
-        item = activity.obj
-
-        p._display_object(item, indent=2)
-        if hasattr(item, 'comments'):
-            comments = list(item.comments)
-            for comment in comments[::-1]:
-                p._display_object(comment, indent=4)
-
-        p.output.log("")
-
-        limit -= 1
-
-        if limit <= 0:
-            return
-
+    p_activityfeed(p, firehose, number)
 
 @cli.command('lists')
 @pass_p
