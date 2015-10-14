@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -188,11 +188,13 @@ class P(object):
         content = u""
         # add image to top of content if image object
         if isinstance(obj, Image):
-            content = u"<p><img src='{0}' alt='Image {1}x{2}'/></p>".format(
-                obj.original.url,
-                obj.original.width,
-                obj.original.height
-            )
+            if obj.original:
+                raise AttributeError
+                content = u"<p><img src='{0}' alt='Image {1}x{2}'/></p>".format(
+                    obj.original.url,
+                    obj.original.width,
+                    obj.original.height
+                )
         if obj.content:
             content = content + obj.content
         #convert to markdown
@@ -726,6 +728,7 @@ def p_activityfeed(p, feed, number, last_setting=None):
 @click.option('--unread', is_flag=True, help='Only show unread items.')
 def p_inbox(p, number, unread):
     """ Lists latest 20 notes in inbox. """
+    last_setting = None
     if unread:
         last_setting = "{wf}-inbox-lastread".format(wf=p.pump.me.webfinger)
 
