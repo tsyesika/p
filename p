@@ -189,7 +189,6 @@ class P(object):
         # add image to top of content if image object
         if isinstance(obj, Image):
             if obj.original:
-                raise AttributeError
                 content = u"<p><img src='{0}' alt='Image {1}x{2}'/></p>".format(
                     obj.original.url,
                     obj.original.width,
