@@ -36,9 +36,15 @@ Configure
 Add new account
 ---------------
 
-To add a new pump.io account to p you need to authorize it:
+To add a new pump.io account to p you need to authorize it. You refer to your account using its [webfinger](https://en.wikipedia.org/wiki/WebFinger):
 ```
 $ p authorize <webfinger>
+```
+
+_example:_
+
+```
+$ p authorize user@server.tld
 ```
 
 List accounts
@@ -55,6 +61,12 @@ Switching between accounts
 To switch between multiple accounts you can use
 ```
 $ p set active <webfinger>
+```
+
+_example:_
+
+```
+$ p set active other-user@other-server.tld
 ```
 
 Files
