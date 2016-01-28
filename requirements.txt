@@ -1,5 +1,3 @@
 -e git+https://github.com/xray7224/PyPump.git#egg=pypump
 -e git+https://github.com/mitsuhiko/click.git#egg=click
-colorama
-pytz
-html2text
+-e .

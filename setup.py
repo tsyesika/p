@@ -38,10 +38,6 @@ setup(
                 "six",
                 "html2text"
                 ],
-        dependency_links=[
-                "https://github.com/xray7224/PyPump/tarball/master#egg=pypump-0.6",
-                "https://github.com/mitsuhiko/click/tarball/master#egg=click-2.0-dev",
-                ],
         classifiers=[
                 "Development Status :: 3 - Alpha",
                 "Programming Language :: Python",
