@@ -29,6 +29,11 @@ $ pip install -r requirements.txt
 (everytime you wish to use p you will have to do `. bin/activate` this is until you have
 the dependencies installed on your system).
 
+To update dependencies, run:
+```
+$ pip install -U -r requirements.txt
+```
+
 
 Configure
 =========
