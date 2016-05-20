@@ -187,13 +187,12 @@ class P(object):
 
         content = u""
         # add image to top of content if image object
-        if isinstance(obj, Image):
-            if obj.original:
-                content = u"<p><img src='{0}' alt='Image {1}x{2}'/></p>".format(
-                    obj.original.url,
-                    obj.original.width,
-                    obj.original.height
-                )
+        if isinstance(obj, Image) and obj.original:
+            content = u"<p><img src='{0}' alt='Image {1}x{2}'/></p>".format(
+                obj.original.url,
+                obj.original.width,
+                obj.original.height
+            )
         if obj.content:
             content = content + obj.content
         #convert to markdown
