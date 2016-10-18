@@ -111,7 +111,7 @@ class P(object):
         self.output.log("To add an account you need to authorize p to use your")
         self.output.log("account and paste the verifier:")
         self.output.log(click.style(url, fg="blue"))
-        verifier = click.prompt("Verifier Code", type=unicode).strip(" ")
+        verifier = click.prompt("Verifier Code", type=str).strip(" ")
         return verifier
 
     def __relative_date(self, d, now=None, reversed=False):
